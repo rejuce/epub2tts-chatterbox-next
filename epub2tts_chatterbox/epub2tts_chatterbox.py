@@ -209,7 +209,7 @@ def wait_for_priority_process(model=None, script_path="/home/doc/repos/call-hand
             move_model_to_device(model, original_device)
 
 
-def chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, progress_bar=None):
+def chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, progress_bar=None, use_bf16=False):
     for i, sent in enumerate(sentences):
         wait_for_priority_process(model)
         clean_sent = conditional_sentence_case(sent.strip())
@@ -423,7 +423,7 @@ def read_book(book_contents, sample, notitles, exaggeration, cfg_weight, prune=T
                         filenames = [
                             "sntnc" + str(z) + ".wav" for z in range(len(sentences))
                         ]
-                        chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, pbar)
+                        chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, pbar, use_bf16=use_bf16)
                         append_silence(filenames[-1], paragraphpause)
                         # combine sentences in paragraph
                         sorted_files = sorted(filenames, key=sort_key)
