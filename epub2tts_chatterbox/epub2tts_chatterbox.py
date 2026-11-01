@@ -228,7 +228,7 @@ def chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weigh
                             wav = model.generate(clean_sent)
                     else:
                         with torch.inference_mode(), precision:
-                            wav = model.generate(clean_sent, audio_prompt_path=sample, exaggeration=exaggeration, cfg_weight=cfg_weight)
+                            wav = model.generate(clean_sent, exaggeration=exaggeration, cfg_weight=cfg_weight)
 
                 ta.save(filenames[i], wav, model.sr)
                 # confirm the file was created
@@ -334,6 +334,19 @@ def read_book(book_contents, sample, notitles, exaggeration, cfg_weight, prune=T
     print(f"Attempting to use device: {device}")
     model = ChatterboxTTS.from_pretrained(device=device)
 
+    # Prepare voice conditioning ONCE before the sentence loop.
+    # Without this, every model.generate() call with audio_prompt_path
+    # re-runs the full reference-encoding pipeline (librosa load, 16k
+    # resample, CAMPPlus speaker encoder, S3Tokenizer forward over ~10 s,
+    # T3 cond-token forward over ~6 s) — thousands of redundant passes per
+    # book.  generate() reuses model.conds when audio_prompt_path is not
+    # supplied, so a single prepare_conditionals() call is sufficient.
+    if sample != "none":
+        print("Preparing voice conditioning (one-time)...")
+        with torch.inference_mode():
+            model.prepare_conditionals(sample)
+        print("Voice conditioning ready.")
+
     # GPU-aware precision. bf16 tensor-core speedups only exist on Ampere
     # (compute capability >= 8.0, e.g. 4060 Ti). Pascal cards (1080/2080,
     # cc 6.1/7.5) have no native bf16 and terrible fp16 — plain fp32 is their
@@ -410,7 +423,7 @@ def read_book(book_contents, sample, notitles, exaggeration, cfg_weight, prune=T
                         filenames = [
                             "sntnc" + str(z) + ".wav" for z in range(len(sentences))
                         ]
-                        chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, pbar, use_bf16)
+                        chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, pbar)
                         append_silence(filenames[-1], paragraphpause)
                         # combine sentences in paragraph
                         sorted_files = sorted(filenames, key=sort_key)
