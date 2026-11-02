@@ -24,7 +24,7 @@ Key features:
 | Branch | HEAD | Notes |
 |--------|------|-------|
 | `main` | `85bb142` | Production; has `09021a2` (bounded-memory chapter build) via PR #1. **Do NOT deploy from main — it lacks the supervisor fix + A1 perf.** |
-| `dev` | `2d11fe4` (local) / `c044a9e` (container) | Working branch. Had a **bad merge** (`506457c`) that dropped `build_part()` + `escape_ffmeta()`. Fixed locally 2026-11-02; pending commit+push. |
+| `dev` | `fb635a9` (local + origin + container) | Working branch. Had a **bad merge** (`506457c`) that dropped `build_part()` + `escape_ffmeta()`. Fixed in `fb635a9`; deployed to container 2026-11-02. ✅ |
 
 > ⚠️ The container at `192.168.0.3:2222` has commit `c044a9e` (use_bf16 param fix) which is **not in the local repo**.
 > After committing the local fix, the container's `/app` must be updated (copy file + clear `__pycache__`).
