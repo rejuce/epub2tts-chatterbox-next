@@ -157,6 +157,44 @@ def append_silence(tempfile, duration=1200):
     # Save the combined audio back to file
     combined.export(tempfile, format="flac")
 
+def build_part(paragraph_files, partname, prune=True):
+    """Assemble a chapter part in a single streaming ffmpeg call.
+
+    Concatenates the paragraph FLACs, applies the fixed silence-pruning
+    filter, then appends the CHAPTER_PAUSE_S chapter-end pad (apad runs
+    AFTER silenceremove, so the pad is never pruned). ffmpeg streams, so
+    peak RAM stays flat regardless of chapter length. The part is written
+    to a temp name and atomically renamed, so a crash never leaves a
+    truncated part that resume would trust.
+    """
+    listfile = f"{partname}.list.txt"
+    with open(listfile, "w", encoding="utf-8") as f:
+        for p in paragraph_files:
+            f.write("file '" + p.replace("'", "'\\''") + "'\n")
+    tmp = partname + ".tmp.flac"
+    filters = ([SILENCE_FILTER] if prune else []) + [f"apad=pad_dur={CHAPTER_PAUSE_S}"]
+    subprocess.run(
+        ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+         "-f", "concat", "-safe", "0", "-i", listfile,
+         "-af", ",".join(filters), "-c:a", "flac", tmp],
+        check=True)
+    os.replace(tmp, partname)      # atomic: a crash never leaves a truncated part
+    os.remove(listfile)
+
+def escape_ffmeta(value):
+    """Escape a value for FFMETADATAFILE: backslash, '=', ';', '#' and newlines."""
+    out = []
+    for ch in value:
+        if ch == "\n":
+            out.append("\\n")
+        elif ch == "\r":
+            out.append("\\r")
+        elif ch in "\\=;#":
+            out.append("\\" + ch)
+        else:
+            out.append(ch)
+    return "".join(out)
+
 def move_model_to_device(model, device):
     """
     Move a ChatterboxTTS model between devices.
