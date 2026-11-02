@@ -1,5 +1,21 @@
 # Progress Log
 
+## 2026-11-02 — docker-compose.yml: generic bind mount paths ✅
+
+### Change
+Made the production `docker-compose.yml` volume bind-mount paths generic (relative to the
+compose file) and added commented-out separate mounts:
+- `/mnt/dm5/_ebook` → `./data` (unified eBooks + speakers + jobs)
+- `/mnt/models/epub2tts` → `./models` (HF/Chatterbox cache)
+- Added commented-out `./speakers:/data/speaker` and `./jobs:/data/jobs` for users who
+  want to split speaker samples and job dirs onto separate host paths/volumes.
+
+### Validation
+- `docker compose config` ✅ (resolves to repo-relative `data` + `models` dirs, valid YAML)
+
+### State
+- Local `dev` working tree: updated, **not yet committed**.
+
 ## 2026-11-02 — dev branch restoration: `build_part` NameError (bad merge) ✅
 
 ### Problem

@@ -348,7 +348,9 @@ AWAITING_REVIEW → TRANSCRIBING → DONE
   - Bug reporting directed to **this** repo (upstream closed)
 - **`docker-compose.yml`** (new, production): `epub2tts-chatterbox:local` image, nvidia GPU
   reservation (device_ids "all"), `NVIDIA_VISIBLE_DEVICES`/`NVIDIA_DRIVER_CAPABILITIES`/`HF_HOME`
-  env, `8080:8080`, bind mounts `/data` + HF cache. Validated with `docker compose config`.
+  env, `8080:8080`, bind mounts `./data` → `/data` + `./models` → HF cache.
+  Commented-out separate mounts for `./speakers` → `/data/speaker` and `./jobs` → `/data/jobs`.
+  Validated with `docker compose config`.
 - Dev compose (`docker-compose.dev.yml`) remains for the SSH dev container (GPU 1, :2222).
 
 ### Test coverage (2026-10-26, 45/45 passed)

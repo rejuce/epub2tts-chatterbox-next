@@ -42,7 +42,10 @@ services:
       - "8080:8080"
 
     volumes:
-      # eBooks + speaker samples + jobs
-      - /mnt/dm5/_ebook:/data
+      # eBooks + speaker samples + jobs (unified)
+      - ./data:/data
+      # Separate mounts for speakers and jobs (uncomment to use)
+      # - ./speakers:/data/speaker
+      # - ./jobs:/data/jobs
       # Chatterbox model cache (persistent across container rebuilds)
-      - /mnt/models/epub2tts:/root/.cache/huggingface
+      - ./models:/root/.cache/huggingface
