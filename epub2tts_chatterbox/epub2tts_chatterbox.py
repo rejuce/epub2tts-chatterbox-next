@@ -157,6 +157,44 @@ def append_silence(tempfile, duration=1200):
     # Save the combined audio back to file
     combined.export(tempfile, format="flac")
 
+def build_part(paragraph_files, partname, prune=True):
+    """Assemble a chapter part in a single streaming ffmpeg call.
+
+    Concatenates the paragraph FLACs, applies the fixed silence-pruning
+    filter, then appends the CHAPTER_PAUSE_S chapter-end pad (apad runs
+    AFTER silenceremove, so the pad is never pruned). ffmpeg streams, so
+    peak RAM stays flat regardless of chapter length. The part is written
+    to a temp name and atomically renamed, so a crash never leaves a
+    truncated part that resume would trust.
+    """
+    listfile = f"{partname}.list.txt"
+    with open(listfile, "w", encoding="utf-8") as f:
+        for p in paragraph_files:
+            f.write("file '" + p.replace("'", "'\\''") + "'\n")
+    tmp = partname + ".tmp.flac"
+    filters = ([SILENCE_FILTER] if prune else []) + [f"apad=pad_dur={CHAPTER_PAUSE_S}"]
+    subprocess.run(
+        ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+         "-f", "concat", "-safe", "0", "-i", listfile,
+         "-af", ",".join(filters), "-c:a", "flac", tmp],
+        check=True)
+    os.replace(tmp, partname)      # atomic: a crash never leaves a truncated part
+    os.remove(listfile)
+
+def escape_ffmeta(value):
+    """Escape a value for FFMETADATAFILE: backslash, '=', ';', '#' and newlines."""
+    out = []
+    for ch in value:
+        if ch == "\n":
+            out.append("\\n")
+        elif ch == "\r":
+            out.append("\\r")
+        elif ch in "\\=;#":
+            out.append("\\" + ch)
+        else:
+            out.append(ch)
+    return "".join(out)
+
 def move_model_to_device(model, device):
     """
     Move a ChatterboxTTS model between devices.
@@ -209,7 +247,7 @@ def wait_for_priority_process(model=None, script_path="/home/doc/repos/call-hand
             move_model_to_device(model, original_device)
 
 
-def chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, progress_bar=None):
+def chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, progress_bar=None, use_bf16=False):
     for i, sent in enumerate(sentences):
         wait_for_priority_process(model)
         clean_sent = conditional_sentence_case(sent.strip())
@@ -228,7 +266,7 @@ def chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weigh
                             wav = model.generate(clean_sent)
                     else:
                         with torch.inference_mode(), precision:
-                            wav = model.generate(clean_sent, audio_prompt_path=sample, exaggeration=exaggeration, cfg_weight=cfg_weight)
+                            wav = model.generate(clean_sent, exaggeration=exaggeration, cfg_weight=cfg_weight)
 
                 ta.save(filenames[i], wav, model.sr)
                 # confirm the file was created
@@ -334,6 +372,19 @@ def read_book(book_contents, sample, notitles, exaggeration, cfg_weight, prune=T
     print(f"Attempting to use device: {device}")
     model = ChatterboxTTS.from_pretrained(device=device)
 
+    # Prepare voice conditioning ONCE before the sentence loop.
+    # Without this, every model.generate() call with audio_prompt_path
+    # re-runs the full reference-encoding pipeline (librosa load, 16k
+    # resample, CAMPPlus speaker encoder, S3Tokenizer forward over ~10 s,
+    # T3 cond-token forward over ~6 s) — thousands of redundant passes per
+    # book.  generate() reuses model.conds when audio_prompt_path is not
+    # supplied, so a single prepare_conditionals() call is sufficient.
+    if sample != "none":
+        print("Preparing voice conditioning (one-time)...")
+        with torch.inference_mode():
+            model.prepare_conditionals(sample)
+        print("Voice conditioning ready.")
+
     # GPU-aware precision. bf16 tensor-core speedups only exist on Ampere
     # (compute capability >= 8.0, e.g. 4060 Ti). Pascal cards (1080/2080,
     # cc 6.1/7.5) have no native bf16 and terrible fp16 — plain fp32 is their
@@ -410,7 +461,7 @@ def read_book(book_contents, sample, notitles, exaggeration, cfg_weight, prune=T
                         filenames = [
                             "sntnc" + str(z) + ".wav" for z in range(len(sentences))
                         ]
-                        chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, pbar, use_bf16)
+                        chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, pbar, use_bf16=use_bf16)
                         append_silence(filenames[-1], paragraphpause)
                         # combine sentences in paragraph
                         sorted_files = sorted(filenames, key=sort_key)

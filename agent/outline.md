@@ -19,7 +19,17 @@ Key features:
 - EPUB must be **DRM-free**
 - Requires **CUDA GPU** or **Apple Silicon (MPS)**; CPU falls back but is slow
 
-## 1a. Development container + SSH flow (working branch `container`)
+## 1a. Branch status (as of 2026-11-02)
+
+| Branch | HEAD | Notes |
+|--------|------|-------|
+| `main` | `85bb142` | Production; has `09021a2` (bounded-memory chapter build) via PR #1. **Do NOT deploy from main — it lacks the supervisor fix + A1 perf.** |
+| `dev` | `fb635a9` (local + origin + container) | Working branch. Had a **bad merge** (`506457c`) that dropped `build_part()` + `escape_ffmeta()`. Fixed in `fb635a9`; deployed to container 2026-11-02. ✅ |
+
+> ⚠️ The container at `192.168.0.3:2222` has commit `c044a9e` (use_bf16 param fix) which is **not in the local repo**.
+> After committing the local fix, the container's `/app` must be updated (copy file + clear `__pycache__`).
+
+## 1b. Development container + SSH flow (working branch `container`)
 
 > Design shift: **one GPU container** holds everything. The agent develops **over SSH**
 > into that container — **no docker socket is ever given to the agent.** The server and
@@ -338,7 +348,9 @@ AWAITING_REVIEW → TRANSCRIBING → DONE
   - Bug reporting directed to **this** repo (upstream closed)
 - **`docker-compose.yml`** (new, production): `epub2tts-chatterbox:local` image, nvidia GPU
   reservation (device_ids "all"), `NVIDIA_VISIBLE_DEVICES`/`NVIDIA_DRIVER_CAPABILITIES`/`HF_HOME`
-  env, `8080:8080`, bind mounts `/data` + HF cache. Validated with `docker compose config`.
+  env, `8080:8080`, bind mounts `./data` → `/data` + `./models` → HF cache.
+  Commented-out separate mounts for `./speakers` → `/data/speaker` and `./jobs` → `/data/jobs`.
+  Validated with `docker compose config`.
 - Dev compose (`docker-compose.dev.yml`) remains for the SSH dev container (GPU 1, :2222).
 
 ### Test coverage (2026-10-26, 45/45 passed)
@@ -351,3 +363,52 @@ AWAITING_REVIEW → TRANSCRIBING → DONE
 - Cancel → CANCELLED → resume → TRANSCRIBING → cancel → CANCELLED
 - Web UI: home, jobs list, job detail pages all render with HTMX
 - SSE events endpoint, book.txt, cover (404 when absent)
+
+## 11. GPU-efficiency notes for the 1080 GTX (2026-11-01 investigation)
+
+> Research findings for maximizing **GPU-use efficiency** on the **RTX 1080 GTX**
+> (Pascal GP104, cc 6.1, 8 GB, **no tensor cores, no bf16**).
+> **Quality must be best** — no model swaps, no CFG/CFM-step reduction, no bf16/fp16.
+> Full scratchpad: `/workspace/chatterbox.md`. No code changed — recommendations
+> pending decision.
+
+- **Hardware:** Pascal → **no bf16, no tensor cores**. fp16 GEMM is *not* tensor-
+  accelerated on Pascal, so fp16 rarely beats fp32 for the LLM backbone. The existing
+  GPU-aware gate (`use_bf16 = device=="cuda" and cc-major >= 8`) correctly keeps the
+  1080 on the **native fp32** path — keep it that way. Efficiency must come from
+  avoiding redundant compute + smaller memory footprint, not from half-precision.
+- **Model in use:** `ChatterboxTTS` (500M Llama_520M T3, 30 layers) + S3Gen CFM decoder
+  (10 ODE steps, `inference_cfg_rate=0.7`) + HiFT vocoder. **No model swap** — quality
+  must be best.
+
+### A. Changes in the user's repo (easy, no dependency changes)
+
+- **A1 / F1 — prepare conditionals once (biggest free win, no quality loss). ✅ DONE**
+  `read_book()` now calls `model.prepare_conditionals(sample)` **once** after model
+  load. `chatterbox_read()` calls `model.generate(sent)` **without**
+  `audio_prompt_path`, so `generate()` reuses `self.conds` (no re-encoding).
+  Committed `2d11fe4` on `dev`. **Regression fix** `c044a9e`: `use_bf16` was a local
+  in `read_book()`, not a global — A1 removed it from the call site, causing
+  `NameError` on every sentence. Restored as an explicit parameter to
+  `chatterbox_read()` (default `False`).
+
+### B. Changes in the underlying chatterbox library (hard — requires fork/monkeypatch)
+
+- **B1 / F3 — lower `max_new_tokens`** 1000 → ~450. Trims KV-cache VRAM; OOM risk on
+  8 GB. Quality risk: truncates very long sentences. Value is hardcoded in `generate()`
+  → needs a chatterbox patch.
+- **B2 / F6 — rsxdalv sync-removal + caching + `torch.compile(cudagraphs)`**
+  (r/LocalLLaMA 1lfnn7b). No quality impact (identical numerics). On the 1080 the bf16
+  part is N/A and torch 2.1.2 compile is less mature → modest gain. Hard: modify T3
+  internals, replace HF transformers LlamaModel with custom copy, change cache types.
+
+### C. Excluded (quality must be best)
+
+- **F2 — `cfg_weight=0`:** CFG improves stability/naturalness. Disabling degrades quality.
+- **F4 — reduce CFM steps:** Fewer ODE steps → lower mel quality. 10 steps is baseline.
+- **F5 — Turbo (350M) / Nano (110M):** Smaller model → lower quality. Ruled out.
+- **F7 — bf16/fp16 on Pascal:** No tensor cores; fp16 GEMM not accelerated. No gain.
+
+> **Recs:** (1) prepare conditionals once [A1]; (2) lower `max_new_tokens` [B1] if OOM
+> is a risk; (3) second-wave rsxdalv port [B2]. Keep fp32, inference_mode, no
+> cudnn.benchmark. Excluded: CFG, CFM steps, model swap, half-precision.

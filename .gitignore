@@ -21,6 +21,12 @@ develop-eggs
 # Installer logs
 pip-log.txt
 
+# Local data dirs (compose bind mounts)
+/data/
+/models/
+/speakers/
+/jobs/
+
 # Unit test / coverage reports
 .coverage
 .tox

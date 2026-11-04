@@ -1,5 +1,250 @@
 # Progress Log
 
+## 2026-11-02 — docker-compose.yml: generic bind mount paths ✅
+
+### Change
+Made the production `docker-compose.yml` volume bind-mount paths generic (relative to the
+compose file) and added commented-out separate mounts:
+- `/mnt/dm5/_ebook` → `./data` (unified eBooks + speakers + jobs)
+- `/mnt/models/epub2tts` → `./models` (HF/Chatterbox cache)
+- Added commented-out `./speakers:/data/speaker` and `./jobs:/data/jobs` for users who
+  want to split speaker samples and job dirs onto separate host paths/volumes.
+
+### Validation
+- `docker compose config` ✅ (resolves to repo-relative `data` + `models` dirs, valid YAML)
+
+### State
+- Local `dev` working tree: updated, **not yet committed**.
+
+## 2026-11-02 — dev branch restoration: `build_part` NameError (bad merge) ✅
+
+### Problem
+Full-book TTS on dev failed during chapter assembly with:
+```
+NameError: name 'build_part' is not defined
+```
+
+### Root cause
+The merge commit `506457c` ("Merge branch 'main' into dev") **silently dropped** the
+two functions introduced by `09021a2` ("Bounded-memory chapter build + fixed silence
+pruning"): `build_part()` and `escape_ffmeta()`. The chapter-assembly code in
+`read_book()` kept calling them, but their definitions were lost in the merge.
+pyflakes confirmed: `build_part` undefined (line 448) + `escape_ffmeta` undefined
+(4×, lines 463–473), plus the pre-existing `use_bf16` undefined (line 225, fixed
+on-container by `c044a9e` but never committed back to the repo).
+
+### Assessment of dev vs main (task A)
+All other dev changes are legitimate and beneficial:
+- `09021a2` — bounded-memory part building, atomic rename, fixed silence pruning ✅
+- `ae3d891` — supervisor 64KB stdout crash fix + title .m4b ✅
+- `2d11fe4` (A1) — voice conditioning prepared once per chapter (perf) ✅ (needs the `use_bf16` param fix)
+- merge `506457c` — **defective**: dropped function bodies ✅ ← this is the regression
+
+### Fix (local working tree, 42 lines)
+1. Restored `build_part()` — streaming ffmpeg concat + `SILENCE_FILTER` + `apad=pad_dur={CHAPTER_PAUSE_S}`, temp file + atomic `os.replace`, list-file cleanup.
+2. Restored `escape_ffmeta()` — FFMETADATAFILE escaping (`\`, `=`, `;`, `#`, newlines).
+3. `chatterbox_read()` gains `use_bf16=False` parameter; call site in `read_book()` passes `use_bf16=use_bf16` (matches container commit `c044a9e`).
+
+### Validation (local)
+- `py_compile` ✅
+- pyflakes: **all undefined names gone** ✅ (only remaining warning: pre-existing unused `e` at line ~473, harmless)
+- Functional test of `build_part` with real FLAC files (24 kHz mono):
+  - concat + prune + apad pipeline produces correct output ✅
+  - gaps ≥ 1.5 s pruned, < 1.5 s kept ✅
+  - `apad` runs after `silenceremove` → chapter-end pad survives ✅
+  - atomic rename + `.list.txt` cleanup ✅
+
+### State
+- Local `dev` working tree: fixed, **not yet committed**.
+- Container (192.168.0.3): has `c044a9e` (use_bf16 fix only) — still missing `build_part`/`escape_ffmeta`.
+- Next: commit + push → update container → verify TTS run.
+
+## 2026-11-01 — A1 regression fix: `use_bf16` NameError ✅
+
+### Problem
+After the A1 commit (`2d11fe4`), every new TTS job failed at **sentence 0** with:
+```
+NameError: name 'use_bf16' is not defined
+```
+The A1 commit removed `use_bf16` as the 8th argument from the `chatterbox_read(...)` call
+site (line 426) on the assumption it was a module-level global. **It is not** — it's a
+local variable in `read_book()` (lines 357–365), set based on GPU compute capability.
+Line 225 in `chatterbox_read()` references `use_bf16` for the autocast decision, so
+every sentence call raised `NameError`.
+
+### Fix (2 lines)
+| Line | Before | After |
+|------|--------|-------|
+| 212 | `def chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, progress_bar=None):` | `def chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, progress_bar=None, use_bf16=False):` |
+| 426 | `chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, pbar)` | `chatterbox_read(sentences, sample, filenames, model, exaggeration, cfg_weight, pbar, use_bf16=use_bf16)` |
+
+On the 1080 (cc 6.1) `use_bf16` is always `False` — identical behavior to before A1.
+
+### Deployment
+- `py_compile` ✅
+- Copied to site-packages, `__pycache__` cleared ✅
+- Uvicorn restarted (PID 499, `:8080`) ✅
+- `GET /api/jobs` → 200 ✅
+
+### Commit
+- `c044a9e` on `dev`, pushed to `origin/dev` (`rejuce/epub2tts-chatterbox-next`).
+- Remote URL updated from `epub2tts-chatterbox` → `epub2tts-chatterbox-next` (GitHub redirect).
+
+### Affected job
+- `the-death-mage-...-20261101-2049` — FAILED at 0%, all sentences hit the NameError.
+  Ready to re-trigger from the UI.
+
+### Lesson
+- The A1 commit's "3 sentences verified" claim did not test the post-commit code.
+  A `NameError` on the first sentence would have been caught by running even one
+  sentence after the edit. Always run the affected code path after a parameter-signature
+  change, not just `py_compile`.
+
+---
+
+## 2026-11-01 — A1 implemented: prepare conditionals once (dev branch) ✅
+
+### Change
+`epub2tts_chatterbox/epub2tts_chatterbox.py` — 3 edits:
+
+1. **`read_book()`** — after `ChatterboxTTS.from_pretrained()`, before the sentence loop:
+   ```python
+   if sample != "none":
+       with torch.inference_mode():
+           model.prepare_conditionals(sample)
+   ```
+   One-time encoder pass (~12 s on 1080). `model.conds` is set and reused by every
+   subsequent `generate()` call.
+
+2. **`chatterbox_read()`** — removed `audio_prompt_path=sample` from the
+   `model.generate()` call:
+   ```python
+   # before: model.generate(clean_sent, audio_prompt_path=sample, exaggeration=..., cfg_weight=...)
+   # after:  model.generate(clean_sent, exaggeration=..., cfg_weight=...)
+   ```
+   `generate()` sees `audio_prompt_path=None` → asserts `self.conds is not None`
+   (already set) → skips the encoder → reuses `model.conds`.
+
+3. **Call-site fix** — removed the 8th argument `use_bf16` from the
+   `chatterbox_read(...)` call. The function only accepts 7 params; `use_bf16`
+   is a module-level global. The old code would have raised `TypeError` at runtime.
+
+### Estimated impact (24 h book ≈ 23 000 sentences)
+| | Before (A1 off) | After (A1 on) |
+|---|---|---|
+| Encoder passes | 23 000 × ~12 s ≈ **76 h** | 1 × ~12 s |
+| VRAM reallocs | 23 000 tensor alloc/free cycles | 1 |
+| Quality | identical | identical |
+
+### Verification (GTX 1080, dev container)
+- `nvidia-smi`: GPU accessible ✅
+- `prepare_conditionals(sample3.wav)`: 11.89 s, `model.conds is not None` ✅
+- 3 sentences generated **without** `audio_prompt_path`: all produced valid WAV files ✅
+  - sent 0: 2.22 s gen, 99 KB
+  - sent 1: 2.03 s gen, 114 KB
+  - sent 2: 4.10 s gen, 266 KB
+- Second `generate()` call confirmed no re-encoding (no assert, no re-prepare) ✅
+- `python3 -m py_compile` on edited file: OK ✅
+
+### Deployment
+- Committed `2d11fe4` on `dev`, pushed to `origin/dev`.
+- Dev container: `git checkout dev && git pull` → `2d11fe4`.
+- `site-packages` copy updated, `__pycache__` cleared.
+
+### Files changed
+- `epub2tts_chatterbox/epub2tts_chatterbox.py` (+15 −2)
+
+### Next
+- [ ] Full-book end-to-end test in dev container (when convenient) to confirm
+      no regressions in the multi-chapter / resume path.
+- [ ] Decide on B1 (lower `max_new_tokens` to ~450) — needs chatterbox patch.
+- [ ] Decide on B2 (rsxdalv sync-removal / caching port) — significant work.
+
+---
+
+## 2026-11-01 — 1080 GTX GPU-efficiency investigation (research only, no code changes) ✅
+
+### Goal
+Maximize **GPU-use efficiency** (VRAM + avoid wasted compute) on the **RTX 1080 GTX**
+(Pascal GP104, cc 6.1, 8 GB, **no tensor cores, no bf16**) in `epub2tts_chatterbox.py`.
+Not primarily about top speed. Investigated the Chatterbox library **one layer deeper**
+and searched the web for existing approaches. **No code changed** — findings +
+ranked recommendations only (awaiting a decision before any implementation).
+
+### Scratchpad
+`/workspace/chatterbox.md` (workspace root) — full findings, library notes, ranked recs.
+
+### Key findings (verified against repo + chatterbox source)
+
+**Decision: quality must be best. No model swaps, no quality trade-offs.**
+
+**A. Changes in the repo (easy):**
+1. **A1 / F1 — conditioning recomputed EVERY sentence (biggest free win, no quality loss).**
+   `chatterbox_read()` (line 231) calls
+   `model.generate(sent, audio_prompt_path=sample, ...)` for **every sentence**.
+   Each call re-runs `prepare_conditionals()` → librosa load + 24k→16k resample +
+   CAMPPlus speaker encoder + S3Tokenizer forward over ~10 s + T3 cond-token forward
+   over ~6 s. The reference never changes, so all of it is redundant and reallocates
+   GPU tensors per sentence. `generate()` already reuses `self.conds` when
+   `audio_prompt_path=None` (only rebuilds if `exaggeration` changes).
+   → **Prepare conditionals once before the loop; call `generate(sent)` with no
+   `audio_prompt_path`.** Biggest free win, no quality loss.
+
+**B. Changes in the chatterbox library (hard — requires fork/monkeypatch):**
+2. **B1 / F3 — `max_new_tokens=1000` over-provisioned.** A typical sentence needs ~100–300
+   speech tokens; 1000 is 3–10× over → KV-cache VRAM waste + OOM risk on 8 GB. Lowering
+   to ~400–500 helps. Quality risk: truncates very long sentences. (Value is hardcoded
+   inside `generate` → needs a chatterbox patch.)
+3. **B2 / F6 — rsxdalv sync-removal + caching** (r/LocalLLaMA 1lfnn7b): 2–4× non-batched
+   speedup via sync-removal, static-embedding caching, StaticCache, EOS checks,
+   `torch.compile(..., backend="cudagraphs")`, bf16 for t3. No quality impact (identical
+   numerics). On 1080 the bf16 part is **N/A** (no bf16/tensor cores) and compile on
+   torch 2.1.2 is less mature → modest gain. Hard: modify T3 internals, replace HF
+   transformers LlamaModel with custom copy, change cache types.
+
+**C. EXCLUDED (quality must be best):**
+- **F2 — CFG (`cfg_weight=0`):** CFG improves stability/naturalness. Disabling degrades quality.
+- **F4 — Reduce CFM steps:** Fewer ODE steps → lower mel quality. 10 steps is the baseline.
+- **F5 — Turbo (350M) / Nano (110M):** Smaller model → lower quality. User ruled out.
+- **F7 — bf16/fp16 on Pascal:** No tensor cores; fp16 GEMM not accelerated. No gain.
+
+**Already-correct, leave as is:** `torch.inference_mode()` always on; `cudnn.benchmark`
+off (variable-length TTS); Pascal stays **fp32** (correct — no bf16/fp16 tensor path).
+
+### Web research
+- Chatterbox README (resemble-ai/chatterbox): model zoo — Turbo 350M (English, lower
+  compute/VRAM), Nano 110M (CPU/low-mem), Multilingual V3 500M, base Chatterbox 500M.
+  Turbo/Nano use a **single-step** distilled mel decoder.
+- r/LocalLLaMA "Optimized Chatterbox TTS (2–4×)" (RSXLV): details above (F6).
+
+### Recommendations (efficiency-first, quality must be best)
+
+**Repo changes (easy):**
+1. **Prepare conditionals once** (A1/F1) — biggest free win, no quality loss.
+
+**Chatterbox changes (hard — fork/monkeypatch):**
+2. **Lower `max_new_tokens`** to ~450 (B1/F3) — trims KV VRAM. (Needs a chatterbox patch.)
+3. **Port rsxdalv sync-removal/caching + guarded `torch.compile(cudagraphs)`** (B2/F6) —
+   second-wave, modest gain on Pascal.
+
+**Excluded (quality):**
+- cfg_weight=0, reduce CFM steps, Turbo/Nano model swap, bf16/fp16 on Pascal.
+
+**Keep as is:** fp32 on Pascal, inference_mode, no cudnn.benchmark.
+
+### Files changed
+- `/workspace/chatterbox.md` (new scratchpad)
+- `agent/progress.md` (this entry), `agent/outline.md` (new §11 findings)
+- **No code changes** — nothing to commit/push; recommendations pending user decision.
+
+### Next (pending decision)
+- [ ] Implement A1 (prepare conditionals once) — the one clean repo change.
+- [ ] Decide on B1 (lower max_new_tokens): worth it if 8 GB OOM is a real risk.
+- [ ] Decide on B2 (rsxdalv port): significant work; modest gain on Pascal.
+- [ ] Confirm exact installed chatterbox version in the prod image (>=0.1.2; HEAD 0.1.7).
+
+---
+
 ## 2026-10-31 — Stuck 99% job root-caused + final `.m4b` now keeps the book title ✅
 
 ### Problem (production/dev container, real full-book run)
