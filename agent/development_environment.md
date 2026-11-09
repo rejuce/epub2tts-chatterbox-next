@@ -61,7 +61,15 @@ ssh -i /workspace/repos/keys/epub2tts/github-epub2tts \
 
 3. **Git pager:** Set `GIT_PAGER=cat` or use `git --no-pager` to avoid interactive pager hangs in non-TTY sessions.
 
-4. **The container keeps alive via `tail -f /dev/null`** in `entrypoint-dev.sh`. Nothing auto-runs. You drive everything over SSH.
+4. **The container keeps alive via `tail -f /dev/null`** in `entrypoint-dev.sh`.
+   The **web server auto-starts** on :8080 (uvicorn, pid in `/var/run/uvicorn.pid`,
+   logs in `/var/log/uvicorn.log`) and survives `docker restart`/`start`.
+   ⚠️ It only auto-starts if the **image** was built from a commit that includes the
+   `web/` package + the auto-start entrypoint. A **recreate** from an older image
+   loses it — rebuild the image (`sudo docker build -f Dockerfile-dev -t
+   epub2tts-chatterbox-dev .`) to make the auto-start permanent. If the server ever
+   isn't up after a restart, check `/var/log/uvicorn.log` and the running
+   `entrypoint-dev.sh` version (the old one only started sshd).
 
 5. **CWD-dependent output:** The CLI tool writes `partN.flac`, `pgraphsN.flac`, etc. to the **current working directory**. Always `cd` into the job dir before running TTS.
 
@@ -117,13 +125,28 @@ chmod 600 ~/.ssh/id_github_epub2tts
 | git | `/usr/bin/git` |
 | nvidia-smi | `/usr/bin/nvidia-smi` |
 
-## Docker Build / Run (manual, on host)
+## Docker Build / Run (on host)
+
+**The image is now built automatically** — `docker-compose.dev.yml` has a `build:`
+section (`context: .`, `dockerfile: Dockerfile-dev`), so no manual `docker build` is
+needed. Compose tags it `epub2tts-chatterbox-dev` (the `image:` name).
 
 ```bash
-# Build (from repo root, on branch dev)
-sudo docker build -f Dockerfile-dev -t epub2tts-chatterbox-dev .
+# Preferred — builds the image AND starts the container (from repo root, branch dev):
+sudo docker compose -f docker-compose.dev.yml up -d --build
 
-# Run (or use docker-compose.dev.yml via Portainer)
+# Portainer: create/update the stack from docker-compose.dev.yml, then Deploy/Recreate.
+#   (Portainer builds the image because of the `build:` section.)
+```
+
+> ⚠️ `up -d` **without** `--build` reuses the existing image. Use `--build` (or
+> Portainer's Recreate) when code changes so the new source is baked in. A plain
+> `docker restart` does NOT rebuild — it reuses the current image/layer.
+
+Manual fallback (if you ever skip compose):
+
+```bash
+sudo docker build -f Dockerfile-dev -t epub2tts-chatterbox-dev .
 sudo docker run -d --name epub2tts-chatterbox-dev \
   --gpus all \
   -e NVIDIA_VISIBLE_DEVICES=1 \
@@ -148,8 +171,13 @@ git fetch origin
 git checkout dev
 pip install -e .
 
-# 3. Work (edit files, run server, test, etc.)
-/opt/conda/bin/python3 -m uvicorn epub2tts_chatterbox.web:app --host 0.0.0.0 --port 8080
+# 3. Work (edit files, test, etc.)
+#    The web server auto-starts on :8080 (see entrypoint-dev.sh). To manage it:
+#      tail -f /var/log/uvicorn.log
+#      kill $(cat /var/run/uvicorn.pid)   # stop
+#    Manual (re)start if needed:
+#      cd /app && nohup /opt/conda/bin/python3 -m uvicorn epub2tts_chatterbox.web:app \
+#        --host 0.0.0.0 --port 8080 > /var/log/uvicorn.log 2>&1 &
 
 # 4. Commit + push (from the agent side, or inside container with the key)
 git add -A && git commit -m "..."

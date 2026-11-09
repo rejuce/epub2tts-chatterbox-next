@@ -1,5 +1,72 @@
 # Progress Log
 
+## 2026-11-09 — docker-compose.dev.yml: auto-build the image (no manual `docker build`) ✅
+
+### Change
+Added a `build:` section to `docker-compose.dev.yml` so Compose / Portainer build the
+image automatically — no more manual `sudo docker build`:
+```yaml
+build:
+  context: .
+  dockerfile: Dockerfile-dev
+```
+- Compose tags it `epub2tts-chatterbox-dev` (the `image:` name).
+- CLI: `sudo docker compose -f docker-compose.dev.yml up -d --build`
+- Portainer: update the stack → Deploy/Recreate (builds because of `build:`).
+- Updated the header comment + `development_environment.md` / `outline.md`.
+
+### Validation
+- `docker compose -f docker-compose.dev.yml config --quiet` → OK (Compose v5.7.0).
+- YAML parse confirms `build: {context: ., dockerfile: Dockerfile-dev}` present.
+
+### Notes
+- `up -d` **without** `--build` reuses the existing image; `docker restart` never
+  rebuilds. Use `--build` / Portainer Recreate when code changes.
+- Local working tree changed; **not committed**.
+
+## 2026-11-09 — Dev container: uvicorn not running (stale image) ✅
+
+### Problem
+User asked to SSH into the dev container (`192.168.0.3:2222`) and fix uvicorn. On
+connection the web server was **not running**: no `uvicorn` process, no
+`/var/run/uvicorn.pid`, no `/var/log/uvicorn.log`, nothing on :8080.
+
+### Root cause (stale image, not a runtime bug)
+The running container was built from an **old image (Oct 26)** that predates the
+web frontend:
+1. Its PID 1 entrypoint (`/app/entrypoint-dev.sh`, 1177 bytes, Oct 26) was the **old**
+   version that only starts `sshd` — it does **not** auto-start uvicorn. The repo's
+   current entrypoint (2130 bytes) does.
+2. The container had **no `web/` package at all** — `epub2tts_chatterbox.web` was
+   missing from both `/app` and `/opt/conda/.../site-packages`, and the web deps
+   (fastapi/uvicorn/jinja2/pydantic) were not installed. So uvicorn *could not* start.
+
+The current `dev` branch (HEAD `3f6568a`) has both the `web/` package and the
+auto-start entrypoint; the container simply had never been rebuilt.
+
+### Fix (in-container over SSH — no docker socket available to the agent)
+- `scp`'d `epub2tts_chatterbox/web/` into **both** `/app/epub2tts_chatterbox/` and
+  `/opt/conda/lib/python3.10/site-packages/epub2tts_chatterbox/`.
+- `scp`'d the current `entrypoint-dev.sh` to `/app/` + `chmod +x` (so future
+  container restarts auto-start the server).
+- `pip install fastapi uvicorn[standard] jinja2 pydantic` (fastapi/pydantic already
+  present; installed uvloop/httptools/watchfiles/websockets/python-dotenv for
+  `uvicorn[standard]`).
+- Cleared stale `__pycache__`, then started uvicorn the same way the entrypoint does
+  (`nohup ... > /var/log/uvicorn.log 2>&1 &`, pid → `/var/run/uvicorn.pid`).
+
+### Validation
+- `import epub2tts_chatterbox.web` → OK.
+- `GET /health` → `200 {"ok":true,"busy":false}`; `GET /` → `200` (71 KB).
+- pid 201 alive, listening on :8080 (confirmed via `/proc/net/tcp`).
+
+### State & why it survives restarts
+- Everything changed is on the **container writable layer** (site-packages, `/app`,
+  pip deps, entrypoint) → survives `docker restart` / `docker start`.
+- ⚠️ It does **NOT** survive a **recreate** (`docker rm` + `docker run` / `up`). For
+  that the image must be rebuilt: `sudo docker build -f Dockerfile-dev -t
+  epub2tts-chatterbox-dev .` then recreate. That is the durable "do this" step.
+
 ## 2026-11-02 — docker-compose.yml: generic bind mount paths ✅
 
 ### Change
