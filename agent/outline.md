@@ -63,6 +63,23 @@ Key features:
   change port mappings), the container starts fresh from the image. Any files pushed
   via SSH are on the old container's writable layer and are **lost**. Rebuild the
   image when code changes to make them permanent.
+- **Restart vs recreate (gotcha, hit 2026-11-09):** `docker restart`/`start` keeps the
+  writable layer, so in-container fixes (site-packages, `/app`, pip deps, the
+  auto-start entrypoint) **survive** and uvicorn comes back up on its own. A
+  **recreate** (`docker rm` + `docker run`, or `docker compose up` after a change)
+  resets to the baked-in image, so the server is only guaranteed to auto-start if the
+  **image** was built from a commit that includes `web/` + the auto-start
+  `entrypoint-dev.sh`. The running container on 2026-11-09 was from a pre-`web/`
+  image, so uvicorn had to be fixed in-container *and* the image needs a rebuild to
+  make it permanent.
+- **Image is built automatically by Compose/Portainer (since 2026-11-09):**
+  `docker-compose.dev.yml` now has a `build:` section (`context: .`,
+  `dockerfile: Dockerfile-dev`), so no manual `docker build` is required.
+  - CLI: `sudo docker compose -f docker-compose.dev.yml up -d --build`
+  - Portainer: update the stack → Deploy/Recreate (builds because of `build:`).
+  - `up -d` **without** `--build` reuses the existing image; `docker restart` never
+    rebuilds. Use `--build`/Recreate when code changes. Compose tags the image
+    `epub2tts-chatterbox-dev` (the `image:` name).
 - **`.dockerignore`** excludes `agent/`, `.git`, `__pycache__`, `*.egg-info`, etc.
 - **In-container dev:** code lives in `/app` (git checkout); `pip install -e .` for edits,
   run the FastAPI server, tail logs — all over SSH.

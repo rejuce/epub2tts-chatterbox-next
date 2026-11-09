@@ -1,10 +1,9 @@
 # Dev container for epub2tts-chatterbox — use with Portainer or `docker compose`.
 #
-# Build first (from repo root):
-#   sudo docker build -f Dockerfile-dev -t epub2tts-chatterbox-dev .
-#
-# Then (Portainer: paste this file into a stack, or CLI):
-#   docker compose -f docker-compose.dev.yml up -d
+# The image is built automatically (see the `build:` section below) — no manual
+# `docker build` needed. It is tagged `epub2tts-chatterbox-dev` (the `image:` name).
+#   CLI:       docker compose -f docker-compose.dev.yml up -d --build
+#   Portainer: create/update the stack, then "Deploy"/"Recreate" (builds the image).
 #
 # SSH in:
 #   ssh -i /workspace/repos/keys/epub2tts/github-epub2tts \
@@ -13,6 +12,11 @@
 services:
   dev:
     image: epub2tts-chatterbox-dev
+    # Build the image from the repo root using Dockerfile-dev (includes web/ +
+    # the auto-start entrypoint). Compose tags it with the `image:` name above.
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
     container_name: epub2tts-chatterbox-dev
     restart: unless-stopped
 
