@@ -2,10 +2,11 @@
 
 ## ▶️ Demo
 
-<video src="media/epub2tts-demo.mp4" controls autoplay loop muted playsinline style="max-width:100%"></video>
-
 <p align="center">
-  <sub><a href="media/epub2tts-demo.mp4">epub2tts-chatterbox-next</a> — EPUB → Text → Chatterbox TTS → M4B, one Docker command</sub>
+  <a href="media/epub2tts-demo.mp4" target="_blank">
+    <img src="media/epub2tts-demo.png" alt="epub2tts-chatterbox-next demo: EPUB → Text → Chatterbox TTS → M4B" width="100%">
+  </a><br>
+  <sub><a href="media/epub2tts-demo.mp4">▶️ watch the full demo</a> — EPUB → Text → Chatterbox TTS → M4B, one Docker command</sub>
 </p>
 
 ## 👤 Attribution
