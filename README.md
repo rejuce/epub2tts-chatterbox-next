@@ -3,10 +3,7 @@
 ## ▶️ Demo
 
 <p align="center">
-  <a href="media/epub2tts-demo.mp4" target="_blank">
-    <img src="media/epub2tts-demo.png" alt="epub2tts-chatterbox-next demo: EPUB → Text → Chatterbox TTS → M4B" width="100%">
-  </a><br>
-  <sub><a href="media/epub2tts-demo.mp4">▶️ watch the full demo</a> — EPUB → Text → Chatterbox TTS → M4B, one Docker command</sub>
+  <img src="media/epub2tts-demo.png" alt="epub2tts-chatterbox-next demo: EPUB → Text → Chatterbox TTS → M4B" width="100%">
 </p>
 
 ## 👤 Attribution
