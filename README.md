@@ -1,6 +1,5 @@
 > epub2tts-chatterbox is a free and open source Python app to easily create a full-featured audiobook from an EPUB or text file using realistic voice-cloning text-to-speech by [Chatterbox](https://github.com/resemble-ai/chatterbox). A CUDA-compatible GPU is required, or Apple Silicon.
 
-## ▶️ Demo
 
 <p align="center">
   <img src="media/epub2tts-demo.png" alt="epub2tts-chatterbox-next demo: EPUB → Text → Chatterbox TTS → M4B" width="100%">
