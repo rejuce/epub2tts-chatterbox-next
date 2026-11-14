@@ -152,6 +152,12 @@ epub2tts-chatterbox mybook.epub
 epub2tts-chatterbox mybook.txt --cover mybook.png --sample speaker.wav
 ```
 
+**Failure mode (issue #21 / PR #22, 2026-11-14):** if a sentence cannot be
+generated (3 retries exhausted) or a paragraph's audio cannot be combined
+(missing wav), the run aborts with a `RuntimeError` and a **non-zero** exit
+status. Previously it ended silently with exit status 0. Completed chapters and
+paragraphs are preserved on disk, so re-running resumes.
+
 ## 5. Required text-file format (Phase 2 input)
 
 `validate_text_file()` enforces this — the script **exits with error** if any part is missing:
@@ -211,6 +217,13 @@ Pause timing: 600 ms between paragraphs, 2000 ms between chapters (hardcoded in 
    - `combine_short_sentences()` (short sentences merged to ≥ 8 words)
    - **GPU-aware precision** (decided at startup in `read_book`): `use_bf16 = (device=="cuda" and compute-capability major >= 8)`. On **Ampere+** (e.g. 4060 Ti) it enables bf16 autocast **and** TF32 (`matmul.allow_tf32`, `cudnn.allow_tf32`); on **Pascal** (1080/2080, cc 6.1/7.5) it leaves both off → native fp32 (their fastest path; no native bf16, crippled fp16). `cudnn.benchmark` is left off (TTS shapes vary per sentence → autotune re-runs). `torch.inference_mode()` is always on.
    - Per sentence: `conditional_sentence_case()` (3 consecutive ALL-CAPS words → lowercase) then `model.generate()` wrapped in `torch.inference_mode()` + (bf16 autocast iff `use_bf16`); 3 retry attempts
+   - **Fail-loudly on generation failure (issue #21 / PR #22, 2026-11-14):**
+     after 3 failed attempts `chatterbox_read()` `raise`s `RuntimeError` (names the
+     sentence; completed chapters/paragraphs are preserved) instead of silently
+     continuing with a missing `sntnc*.wav`. The paragraph-combine step likewise
+     `raise`s `RuntimeError` on a missing/corrupt wav instead of bare `sys.exit()`
+     (which exited **0**). Since `main()` calls `read_book()` with no try/except, the
+     process exits **non-zero** on failure.
    - tqdm progress bar per chapter (sentence count); per-paragraph resume via existing `pgraphs_c{chapter:04d}_p{pindex:05d}.flac`
    - **`build_part(files, partname, prune)`** — single streaming ffmpeg call: concat paragraph FLACs → `silenceremove` (fixed filter) → `apad=pad_dur=2` → FLAC. Atomic write via `os.replace`. Replaces the old pydub `combined += AudioSegment.from_file()` assembly (which decoded the whole chapter to raw PCM). Peak RAM stays flat regardless of chapter length.
    - Returns list of `part<i>.flac`
