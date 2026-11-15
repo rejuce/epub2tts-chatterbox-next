@@ -194,9 +194,12 @@ Final:
 - `FFMETADATAFILE` — temporary FFmpeg metadata (deleted)
 - `filelist.txt` — temporary concat list (deleted)
 - `mybook.m4a` — intermediate FLAC-in-MP4 (deleted)
-- **`<Book Title> (<speaker_name>).m4b`** — FINAL OUTPUT (`.txt` stripped; **title** = parsed book title via
-  `_safe_filename()`, falls back to `book`; speaker = sample filename stem). Before the
-  2026-10-31 fix this was hardcoded to `book (<speaker>).m4b`.
+- **`<Book Title> (<speaker_name>).m4b`** — FINAL OUTPUT (**title** = parsed book title via
+  `_safe_filename()`, falls back to the source filename with only the **trailing** `.txt` stripped
+  via `os.path.splitext()`; speaker = sample filename stem). Before the 2026-10-31 fix this was
+  hardcoded to `book (<speaker>).m4b`. The old fallback used `.replace(".txt", "")`, which stripped
+  `.txt` from *anywhere* in the path — a source under a directory containing `.txt` produced an
+  output path in a non-existent dir → ffmpeg failed → the parts were deleted (issue #17 / PR #18).
   - AAC audio + `[CHAPTER]` metadata (title, start/end, TIMEBASE 1/1000) + `covr` cover atom if `--cover` given
 
 Pause timing: 600 ms between paragraphs, 2000 ms between chapters (hardcoded in `append_silence` calls).
@@ -234,6 +237,12 @@ Pause timing: 600 ms between paragraphs, 2000 ms between chapters (hardcoded in 
    - `assert len(files) == len(chapter_titles)`
 6. `make_m4b(files, sourcefile, speaker, book_title)` → ffmpeg concat → `.m4a` → aac+metadata →
    `.m4b`, cleans intermediates. Final name = `<book_title> (<speaker>).m4b` (via `_safe_filename()`).
+   **Fail-loudly (issue #17 / PR #18, 2026-11-15):** both `subprocess.run(ffmpeg_command)` calls
+   (concat→`.m4a`, mux→`.m4b`) are checked — the concat step raises `RuntimeError` on a non-zero
+   return code, and the mux step raises on a non-zero code **or** a missing `.m4b`. The scratch-file
+   + `part*.flac` deletion now runs **only after** the `.m4b` is confirmed to exist, so a failed
+   ffmpeg no longer destroys the per-chapter checkpoints (a re-run resumes). Previously it deleted
+   everything unconditionally and returned a path that did not exist.
 7. `add_cover(cover, m4b)` → mutagen `mp4` `covr` atom
 
 **Resume behavior:** killing the process mid-run is safe — `partN.flac` and `pgraphsN.flac` files are checked and skipped on next run.
@@ -442,3 +451,17 @@ AWAITING_REVIEW → TRANSCRIBING → DONE
 > **Recs:** (1) prepare conditionals once [A1]; (2) lower `max_new_tokens` [B1] if OOM
 > is a risk; (3) second-wave rsxdalv port [B2]. Keep fp32, inference_mode, no
 > cudnn.benchmark. Excluded: CFG, CFM steps, model swap, half-precision.
+
+## 12. Test suite (`tests/`)
+
+GPU-free regression tests; run in the dev container with
+`/opt/conda/bin/python3 -m pytest tests/ -v` (the local agent env has no
+torch/chatterbox, so the suite only runs in the container). As of 2026-11-15:
+
+| File | Tests | Covers |
+|---|---|---|
+| `tests/test_generation_failure.py` | 4 | issue #21 / PR #22 — a failed sentence / missing combine wav `raise`s `RuntimeError` (non-zero exit); working sentences unaffected. Stub model, real audio I/O. |
+| `tests/test_make_m4b.py` | 4 | issue #17 / PR #18 — `make_m4b()` keeps `part*.flac` on a concat or mux failure, only cleans up on success, and derives the output name with `os.path.splitext()` (a `.txt` in a directory name is preserved). `FakeFFmpeg` stubs `subprocess.run`. |
+
+Total: **8 passed** in the dev container (2026-11-15).
+

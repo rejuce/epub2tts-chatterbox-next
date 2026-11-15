@@ -1,5 +1,73 @@
 # Progress Log
 
+## 2026-11-15 — Fix issue #17 / PR #18: `make_m4b()` deletes chapters on ffmpeg failure ✅
+
+### Problem (issue #17)
+`make_m4b()` ran **two** `subprocess.run(ffmpeg_command)` calls (concat→`.m4a`, then
+mux→`.m4b`) **without checking the return code**, then **unconditionally deleted**
+`filelist.txt`, `FFMETADATAFILE`, the intermediate `.m4a`, and **every `part*.flac`**.
+On any ffmpeg failure (e.g. full disk on a multi-GB intermediate) the run reported
+success, returned a path that did not exist, and **destroyed the entire TTS run**
+(the per-chapter `part*.flac` checkpoints are what make a run resumable). A second,
+related bug: the output name used `sourcefile.replace(".txt", "")`, which stripped
+`.txt` from **anywhere** in the path — a source under a directory whose name contains
+`.txt` produced an output path in a non-existent directory → ffmpeg failed →
+triggered the deletion bug above.
+
+### Fix (PR #18, applied to local `dev` working tree)
+`epub2tts_chatterbox/epub2tts_chatterbox.py` — 3 surgical edits in `make_m4b()`:
+1. **Output-name derivation:** `sourcefile.replace(".txt", "")` →
+   `os.path.splitext(sourcefile)[0]` (strips only the trailing extension; a `.txt`
+   in a directory name is preserved). Title-based naming (the normal web path)
+   is unchanged.
+2. **Concat step:** capture `result = subprocess.run(ffmpeg_command)`; if
+   `result.returncode != 0` → `raise RuntimeError(...)` (parts kept, re-run resumes).
+3. **Mux step:** capture `result`; if `result.returncode != 0 or not
+   os.path.isfile(outputm4b)` → `raise RuntimeError(...)`. The scratch-file +
+   `part*.flac` deletion block is now **after** this check, so it runs only on
+   confirmed success.
+
+Because `main()` calls the pipeline with no try/except, the `RuntimeError`
+propagates → the process exits **non-zero**, consistent with the PR #22
+fail-loudly behavior.
+
+### Regression tests (new `tests/test_make_m4b.py`, 4 tests)
+Use a `FakeFFmpeg` (stubbed `subprocess.run` returning a chosen exit code; creates
+the output file only on success). No GPU / model / real encoding needed:
+- `test_parts_survive_when_m4b_mux_fails` — concat ok, mux fails → RuntimeError, **all parts survive**
+- `test_parts_survive_when_concat_fails` — concat fails → RuntimeError, **all parts survive**
+- `test_path_derivation_keeps_txt_dirs_intact` — source under `.txtbooks/` → output stays in that dir
+- `test_successful_mux_cleans_up_and_returns_name` — success → m4b exists, scratch+parts deleted, correct name returned
+
+### Dev-container verification (192.168.0.3:2222, GTX 1080)
+- **Prereqs:** container reachable; `/app` is **no longer a git repo** (recreated
+  from image) → deploy via `scp`, not git. GPU online (GTX 1080, 131 MiB / 8192).
+  pytest 9.2.0 present. `site-packages` + `/app` module both md5 `55d50967…` (pre-fix).
+- **Deploy:** `scp` the edited module to **both** `/app/epub2tts_chatterbox/` and
+  `/opt/conda/lib/python3.10/site-packages/epub2tts_chatterbox/` (non-editable
+  install — both must match), plus `tests/test_make_m4b.py` to `/app/tests/`.
+  Cleared `__pycache__` in both. All md5 `520f1ebc…` (post-fix).
+- **pytest (full suite):** `python3 -m pytest tests/ -v` → **8 passed**
+  (4× `test_generation_failure.py` + 4× `test_make_m4b.py`), exit 0, ~10.7 s.
+- **Real end-to-end TTS (live Chatterbox model, 1080):** fresh 2-chapter book
+  `m4b_e2e.txt` → `M4B E2E (sample3).m4b` (134,444 B). `ffprobe` confirms **2 chapters**
+  (Chapter One 0–10.24 s, Chapter Two 10.24–19.72 s), 19.76 s total. **No leftover
+  scratch/parts** (cleanup ran only after the m4b was confirmed), **no errors** in log.
+  Happy path has **no regression**.
+- **Web server:** `GET /health` → `{'ok': True, 'busy': False}` (uvicorn still healthy
+  after the site-packages change).
+
+### Files changed (local `dev` working tree)
+- `epub2tts_chatterbox/epub2tts_chatterbox.py` (3 edits in `make_m4b()`)
+- `tests/test_make_m4b.py` (new, 4 tests)
+- `agent/progress.md` (this entry), `agent/outline.md` (§6, §7, §12)
+
+### State
+- Local `dev` working tree: fixed, **not yet committed / not pushed**.
+- Container (192.168.0.3): updated via `scp` (both import locations + test), verified.
+- **Next:** commit + push to `origin/dev` (awaiting approval).
+
+
 ## 2026-11-09 — docker-compose.dev.yml: auto-build the image (no manual `docker build`) ✅
 
 ### Change
