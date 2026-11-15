@@ -547,7 +547,11 @@ def make_m4b(files, sourcefile, speaker, title=None):
     speaker_file = os.path.basename(speaker)
     # Prefer the real book title for the output name; fall back to the
     # source filename (minus .txt) when no title is available.
-    basefile = _safe_filename(title) if title else sourcefile.replace(".txt", "")
+    # os.path.splitext() strips only the trailing extension, so a source
+    # under a directory whose name contains ".txt" keeps its path intact
+    # (the old .replace(".txt", "") mangled such paths -> a non-existent
+    # output directory -> ffmpeg failed -> the parts were then deleted).
+    basefile = _safe_filename(title) if title else os.path.splitext(sourcefile)[0]
     outputm4a = f"{basefile}.m4a"
     speaker_name = os.path.splitext(speaker_file)[0]
     outputm4b = f"{basefile} ({speaker_name}).m4b"
@@ -571,7 +575,12 @@ def make_m4b(files, sourcefile, speaker, title=None):
         "-2",
         outputm4a,
     ]
-    subprocess.run(ffmpeg_command)
+    result = subprocess.run(ffmpeg_command)
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"ffmpeg concat step failed (exit code {result.returncode}). "
+            f"Chapter files (part*.flac) were kept so re-running resumes."
+        )
     ffmpeg_command = [
         "ffmpeg",
         "-i",
@@ -584,7 +593,14 @@ def make_m4b(files, sourcefile, speaker, title=None):
         "aac",
         outputm4b,
     ]
-    subprocess.run(ffmpeg_command)
+    result = subprocess.run(ffmpeg_command)
+    if result.returncode != 0 or not os.path.isfile(outputm4b):
+        raise RuntimeError(
+            f"ffmpeg m4b mux step failed (exit code {result.returncode}). "
+            f"Chapter files (part*.flac) were kept so re-running resumes."
+        )
+    # The audiobook is confirmed to exist; only now remove the scratch
+    # files and the per-chapter parts (which are what make a run resumable).
     os.remove(filelist)
     os.remove("FFMETADATAFILE")
     os.remove(outputm4a)
