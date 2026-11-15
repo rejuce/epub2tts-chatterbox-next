@@ -798,6 +798,43 @@ Silences **< 1.5 s are untouched**. Silences **≥ 1.5 s are removed entirely** 
 - [x] Re-copied `web/` package + updated entrypoint to the recreated container
 - [x] Server verified live on `http://192.168.0.3:1244` → `{"ok":true,"busy":false}`
 
+### Fix issue #21 / PR #22: fail loudly on generation failure (2026-11-14)
+- [x] **Bug: a single failed sentence ended the run silently, exit status 0.**
+  - `chatterbox_read()` final `except` (~L282) printed "Failed to process
+    sentence … after 3 attempts" then **continued** without writing the audio
+    file, leaving a missing `sntnc*.wav`.
+  - `read_book()` paragraph-combine step (~L478) called bare `sys.exit()` on a
+    missing wav file → **exit status 0** (looked like success).
+- [x] **Fix (PR #22):** both spots now `raise RuntimeError(...)` naming the
+  offending sentence/file and noting that completed chapters/paragraphs are
+  preserved (re-running resumes). Because `main()` calls `read_book()` with no
+  try/except, the `RuntimeError` propagates → the process exits **non-zero**.
+  - Files: `epub2tts_chatterbox/epub2tts_chatterbox.py` (17 insertions, 1 deletion).
+- [x] **Regression test added:** `tests/test_generation_failure.py` (4 tests,
+  GPU-free — stub model, real ffmpeg/pydub I/O):
+  - `test_sentence_that_never_succeeds_raises`
+  - `test_error_identifies_the_sentence`
+  - `test_working_sentences_are_unaffected`
+  - `test_combine_missing_file_raises`
+- [x] **Verified in the dev container (192.168.0.3:2222):**
+  - `pytest tests/test_generation_failure.py` → **4 passed** (exit 0).
+  - End-to-end driver over the **real** `read_book()` pipeline (stub model,
+    real audio I/O):
+    - happy path → 2 chapter files, **exit 0** (no regression).
+    - generation failure → `RuntimeError: Sentence '…' could not be generated
+      after 3 attempts…`, **exit 1**.
+    - combine missing-file → `RuntimeError: Could not combine paragraph audio:
+      'sntnc0.wav' is missing…`, **exit 1**.
+  - **Constraint:** the dev container's GPU was OFFLINE during testing
+    (`nvidia-smi` → "NVML Unknown Error", `torch.cuda.is_available()` False;
+    host-side driver fault). So the neural model was stubbed; all audio I/O
+    (torchaudio.save, pydub, ffmpeg) was real. A real-GPU happy-path run was
+    not possible; re-verify with the real model once the GPU is back.
+- [x] (GPU restored 2026-11-14) Real end-to-end TTS in `/data/devel` with the
+  live Chatterbox model on GTX 1080: `smoke_test.txt` (1 chapter, 3 sentences)
+  completed successfully, producing `Smoke Test (sample3).m4b` (124 kB, 17.3 s).
+  **Exit code 0 — no regression.**
+
 ### Next
 - [ ] User acceptance testing (listen to M4B, try editing chapters, cancel mid-run)
 - [ ] Consider: log viewer in UI (stdout.log)
