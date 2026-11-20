@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>epub2tts-chatterbox — Concepts 3 &amp; 10</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: #0a0d0b;
+    color: #e6efe6;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .masthead {
+    padding: 60px 24px 40px;
+    text-align: center;
+    background:
+      radial-gradient(1000px 400px at 30% -10%, rgba(123,167,160,0.14), transparent 60%),
+      radial-gradient(1000px 400px at 70% 120%, rgba(214,168,74,0.12), transparent 60%),
+      #0a0d0b;
+    border-bottom: 1px solid rgba(92,122,85,0.25);
+  }
+  .masthead .kicker {
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: #5c7a55;
+    font-weight: 600;
+    margin: 0 0 14px;
+  }
+  .masthead h1 {
+    margin: 0;
+    font-family: "Lora", serif;
+    font-size: clamp(26px, 5vw, 42px);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #f3efe0;
+  }
+  .masthead p {
+    max-width: 640px;
+    margin: 16px auto 0;
+    color: #a9b7a6;
+    font-size: 15px;
+  }
+  .toc {
+    max-width: 700px;
+    margin: 32px auto 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 8px;
+  }
+  .toc a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #cdd7cd;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: 0.15s;
+  }
+  .toc a:hover { background: rgba(55,214,106,0.1); border-color: rgba(55,214,106,0.35); }
+  .toc .num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: #37d66a;
+    border: 1px solid rgba(55,214,106,0.4);
+    border-radius: 6px;
+    padding: 2px 8px;
+  }
+  .concept {
+    margin: 44px auto;
+    max-width: 1040px;
+    padding: 0 16px;
+  }
+  .concept-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin: 0 4px 6px;
+    flex-wrap: wrap;
+  }
+  .concept-head .num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: #0a0d0b;
+    background: #37d66a;
+    border-radius: 8px;
+    padding: 2px 9px;
+    font-weight: 600;
+  }
+  .concept-head h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #f3efe0;
+  }
+  .concept-head .tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: #8b929e;
+    letter-spacing: 0.04em;
+  }
+  .concept-desc {
+    color: #9aa89a;
+    font-size: 13.5px;
+    max-width: 720px;
+    margin: 0 0 18px;
+  }
+  .swatches { display: flex; gap: 6px; margin: 0 0 18px; flex-wrap: wrap; }
+  .swatch {
+    width: 34px; height: 20px; border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .browser {
+    background: #101311;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px -40px rgba(0,0,0,0.9);
+  }
+  .browser .bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .browser .dot { width: 11px; height: 11px; border-radius: 50%; background: #33382f; }
+  .browser .dot.r { background:#5a3a3a; } .browser .dot.y { background:#5a523a; } .browser .dot.g { background:#3a5a3f; }
+  .browser .url {
+    flex: 1; text-align: center; font-family: "IBM Plex Mono", monospace;
+    font-size: 11px; color: #6b7268;
+  }
+  .browser .stage { padding: 0; }
+
+  /* ===== custom book+soundwave mark ===== */
+  .mark { display:inline-block; vertical-align:middle; flex:0 0 auto; }
+  .mark svg { display:block; }
+  .mark .page { fill:#3a5a52; stroke:none; }
+  .mark .spine { fill:none; stroke:#2f4a44; stroke-width:0.9; }
+  .mark .wave  { fill:none; stroke:#d6a84a; stroke-width:1.7; stroke-linecap:round; }
+
+  /* ================= CONCEPT 3 — MODERN READER ================= */
+  .c-reader { font-family:"Inter",sans-serif; color:#2a2f2c; background:#fafaf7; }
+  .c-reader .hdr { display:flex; gap:16px; align-items:center; padding:14px 22px; background:#fff; border-bottom:1px solid #eceae3; }
+  .c-reader .logo { display:flex; align-items:center; gap:10px; font-weight:700; font-size:16px; color:#3a5a52; letter-spacing:-0.01em; }
+  .c-reader .logo .word { font-weight:700; }
+  .c-reader .nav { margin-left:auto; display:flex; gap:14px; align-items:center; font-size:14px; color:#6b7268; }
+  .c-reader .nav a { color:#6b7268; text-decoration:none; }
+  .c-reader .nav a.on { color:#3a5a52; font-weight:600; }
+
+  /* theme toggle */
+  .theme-toggle {
+    position:relative; display:inline-flex; align-items:center; gap:7px;
+    background:#eef0ec; border:1px solid #e0ddd4; border-radius:20px;
+    padding:5px 13px 5px 32px; font-size:12px; color:#5b635c; cursor:pointer;
+    font-family:inherit; font-weight:600; transition:.2s; margin-left:6px;
+  }
+  .theme-toggle .knob {
+    position:absolute; left:5px; top:50%; transform:translateY(-50%);
+    width:18px; height:18px; border-radius:50%;
+    background:#fff; border:1px solid #d8d5cc;
+    box-shadow:0 1px 3px rgba(0,0,0,.18); transition:.2s;
+  }
+  .theme-toggle .ic { width:13px; height:13px; }
+  .theme-toggle .ic-moon { display:block; }
+  .theme-toggle .ic-sun  { display:none; }
+  .c-reader .theme-toggle:hover { border-color:#cfcabd; }
+  /* dark variant of the toggle */
+  .c-reader.dark .theme-toggle { background:#232b26; border-color:#2f3a34; color:#b7c2b7; padding-left:13px; padding-right:32px; }
+  .c-reader.dark .theme-toggle .knob { left:auto; right:5px; background:#8fbf94; border-color:#8fbf94; box-shadow:0 1px 4px rgba(143,191,148,.5); }
+  .c-reader.dark .theme-toggle .ic-moon { display:none; }
+  .c-reader.dark .theme-toggle .ic-sun  { display:block; }
+
+  .c-reader .hdr .spacer { flex:1; }
+  .c-reader .wrap { max-width:900px; margin:0 auto; padding:30px 22px 36px; }
+  .c-reader h3 { font-size:26px; margin:0 0 6px; color:#1f2421; font-weight:700; letter-spacing:-0.02em; }
+  .c-reader .sub { color:#7a837d; font-size:14px; margin:0 0 26px; }
+  .c-reader .field { margin-bottom:18px; }
+  .c-reader label { display:block; font-size:13px; color:#5b635c; margin-bottom:7px; font-weight:600; }
+  .c-reader select, .c-reader input[type=text] { width:100%; background:#fff; color:#2a2f2c; border:1px solid #e0ddd4; border-radius:10px; padding:12px 14px; font-size:15px; box-shadow:0 1px 2px rgba(0,0,0,0.02); }
+  .c-reader select:focus, .c-reader input:focus { outline:none; border-color:#7ba7a0; box-shadow:0 0 0 3px rgba(123,167,160,0.2); }
+  .c-reader .btn { background:#3a5a52; color:#fff; border:0; border-radius:10px; padding:12px 24px; font-weight:600; font-size:15px; cursor:pointer; }
+  .c-reader .btn:hover { background:#33504a; }
+  .c-reader .card { background:#fff; border:1px solid #eceae3; border-radius:14px; padding:16px 18px; margin-bottom:12px; box-shadow:0 2px 8px rgba(31,36,33,0.04); transition:.15s; }
+  .c-reader .card:hover { box-shadow:0 8px 22px rgba(31,36,33,0.08); transform:translateY(-1px); }
+  .c-reader .card .row { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .c-reader .card .name { font-weight:600; font-size:15px; }
+  .c-reader .card .meta { color:#8b928c; font-size:13px; margin-top:3px; }
+  .c-reader .badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; }
+  .c-reader .badge.TRANSCRIBING { background:#e6f0ec; color:#3a5a52; }
+  .c-reader .badge.DONE { background:#e3efe0; color:#4a6a3f; }
+  .c-reader .badge.AWAITING_REVIEW { background:#f2efe0; color:#8a7a3f; }
+  .c-reader .badge.FAILED { background:#f3e4e4; color:#a05050; }
+  .c-reader .prog { background:#eceae3; border-radius:20px; height:22px; overflow:hidden; position:relative; }
+  .c-reader .prog > div { background:linear-gradient(90deg,#5c7a6f,#7ba7a0); height:100%; border-radius:20px; }
+  .c-reader .prog > span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#5b635c; }
+
+  /* ===== concept 3 dark variant ===== */
+  .c-reader.dark { color:#e4ebe4; background:#151a17; }
+  .c-reader.dark .hdr { background:#1b211d; border-color:#262d28; }
+  .c-reader.dark .logo { color:#8fbf94; }
+  .c-reader.dark .logo .word { color:#e9f2e9; }
+  .c-reader.dark .nav a { color:#9aa89a; }
+  .c-reader.dark .nav a.on { color:#9ec9a1; }
+  .c-reader.dark h3 { color:#f2f5f2; }
+  .c-reader.dark .sub { color:#8f9c90; }
+  .c-reader.dark label { color:#a6b3a7; }
+  .c-reader.dark select, .c-reader.dark input[type=text] { background:#1d2320; color:#e4ebe4; border-color:#2c342e; }
+  .c-reader.dark select:focus, .c-reader.dark input:focus { border-color:#6f968c; box-shadow:0 0 0 3px rgba(123,167,160,0.25); }
+  .c-reader.dark .btn { background:#5c7a6f; }
+  .c-reader.dark .btn:hover { background:#6b8a7e; }
+  .c-reader.dark .card { background:#1d2320; border-color:#2a312b; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+  .c-reader.dark .card:hover { box-shadow:0 8px 22px rgba(0,0,0,0.45); }
+  .c-reader.dark .card .name { color:#eef2ee; }
+  .c-reader.dark .card .meta { color:#8f9c90; }
+  .c-reader.dark .badge.TRANSCRIBING { background:rgba(123,167,160,0.18); color:#b7dfcf; }
+  .c-reader.dark .badge.DONE { background:rgba(92,122,85,0.22); color:#bcd6b4; }
+  .c-reader.dark .badge.AWAITING_REVIEW { background:rgba(214,168,74,0.18); color:#ecd6a0; }
+  .c-reader.dark .badge.FAILED { background:rgba(214,110,74,0.2); color:#f2c9b2; }
+  .c-reader.dark .prog { background:#262d28; }
+  .c-reader.dark .prog > span { color:#c3cec3; }
+  .c-reader.dark .mark .page { fill:#eef2ee; }
+  .c-reader.dark .mark .spine { stroke:#a9b4a9; stroke-width:0.9; }
+  .c-reader.dark .mark .wave  { stroke:#e7c46a; }
+
+  /* ================= CONCEPT 10 — FROSTED GLASS (WARM) ================= */
+  .c-glass { font-family:"Inter",sans-serif; color:#eef0f5; background:linear-gradient(135deg,#3a5a52 0%, #33503f 45%, #5a4328 100%); min-height:420px; position:relative; overflow:hidden; }
+  .c-glass::before { content:""; position:absolute; top:-20%; left:-10%; width:60%; height:60%; background:radial-gradient(circle, rgba(123,167,160,0.42), transparent 60%); filter:blur(30px); }
+  .c-glass::after { content:""; position:absolute; bottom:-20%; right:-10%; width:60%; height:60%; background:radial-gradient(circle, rgba(214,168,74,0.35), transparent 60%); filter:blur(30px); }
+  .c-glass .hdr { position:relative; display:flex; gap:16px; align-items:center; padding:16px 22px; background:rgba(255,255,255,0.06); backdrop-filter:blur(14px); border-bottom:1px solid rgba(255,255,255,0.12); }
+  .c-glass .logo { display:flex; align-items:center; gap:10px; font-weight:700; font-size:17px; color:#fff; letter-spacing:-0.01em; }
+  .c-glass .nav { margin-left:auto; display:flex; gap:18px; font-size:14px; }
+  .c-glass .nav a { color:#d5dbe6; text-decoration:none; }
+  .c-glass .nav a.on { color:#fff; font-weight:600; }
+  .c-glass .wrap { position:relative; max-width:900px; margin:0 auto; padding:28px 22px 34px; }
+  .c-glass h3 { font-size:25px; margin:0 0 6px; color:#fff; font-weight:700; letter-spacing:-0.02em; }
+  .c-glass .sub { color:#d0d6e0; font-size:14px; margin:0 0 26px; }
+  .c-glass .field { margin-bottom:18px; }
+  .c-glass label { display:block; font-size:12px; color:#cdd6e2; margin-bottom:7px; font-weight:600; }
+  .c-glass select, .c-glass input[type=text] { width:100%; background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.16); border-radius:12px; padding:12px 14px; font-size:15px; backdrop-filter:blur(6px); }
+  .c-glass select:focus, .c-glass input:focus { outline:none; border-color:rgba(255,255,255,0.4); box-shadow:0 0 0 3px rgba(255,255,255,0.1); }
+  .c-glass .btn { background:rgba(255,255,255,0.95); color:#2a3f35; border:0; border-radius:12px; padding:12px 26px; font-weight:600; font-size:15px; cursor:pointer; backdrop-filter:blur(6px); }
+  .c-glass .card { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:16px; padding:16px 18px; margin-bottom:12px; backdrop-filter:blur(14px); box-shadow:0 8px 26px -16px rgba(0,0,0,0.6); }
+  .c-glass .card .row { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .c-glass .card .name { font-weight:600; font-size:15px; color:#fff; }
+  .c-glass .card .meta { color:#c0c8d6; font-size:13px; margin-top:4px; }
+  .c-glass .badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:600; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#eef0f5; }
+  .c-glass .badge.TRANSCRIBING { background:rgba(123,167,160,0.25); border-color:rgba(123,167,160,0.5); color:#d5f0e6; }
+  .c-glass .badge.DONE { background:rgba(92,122,85,0.28); border-color:rgba(92,122,85,0.5); }
+  .c-glass .badge.AWAITING_REVIEW { background:rgba(214,168,74,0.22); border-color:rgba(214,168,74,0.5); color:#f4e6c0; }
+  .c-glass .badge.FAILED { background:rgba(214,110,74,0.22); border-color:rgba(214,110,74,0.5); color:#f6d5c0; }
+  .c-glass .prog { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18); border-radius:20px; height:22px; overflow:hidden; position:relative; backdrop-filter:blur(6px); }
+  .c-glass .prog > div { background:linear-gradient(90deg,rgba(214,168,74,0.85),#fff); height:100%; border-radius:20px; }
+  .c-glass .prog > span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#3a2f18; font-weight:700; }
+  /* mark on dark/warm: white book, warm-glowing amber waves */
+  .c-glass .mark .page { fill:#ffffff; }
+  .c-glass .mark .spine { stroke:#dfe3e8; stroke-width:0.9; }
+  .c-glass .mark .wave  { fill:none; stroke:#e7c46a; stroke-width:1.8; stroke-linecap:round; filter:drop-shadow(0 0 3px rgba(231,196,106,0.9)); }
+
+  .gallery-foot { text-align:center; padding:40px 24px 70px; color:#6b7268; font-size:12px; font-family:"IBM Plex Mono",monospace; }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <p class="kicker">Styling Concepts — Shortlist</p>
+  <h1>epub2tts-chatterbox — 2 Remaining Directions</h1>
+  <p>Kept <strong>3 · Modern Reader</strong> (light, with a working light/dark toggle) and <strong>10 · Frosted Glass</strong> (dark, warm brown/gold). Custom book+soundwave mark replaces the emoji. Same screens, one page to compare.</p>
+  <nav class="toc">
+    <a href="#c3"><span class="num">03</span> Modern Reader</a>
+    <a href="#c10"><span class="num">10</span> Frosted Glass (warm)</a>
+  </nav>
+</div>
+
+<!-- ============ 3. MODERN READER ============ -->
+<section class="concept" id="c3">
+  <div class="concept-head"><span class="num">03</span><h2>Modern Reader</h2><span class="tag">light · airy · working toggle</span></div>
+  <p class="concept-desc">Bright, Kindle/Kobo-clean. Soft rounded cards, generous whitespace, and a real one-click light/dark toggle (click it). A custom open-book mark with soundwave bars rising from the spine — "book → audio".</p>
+  <div class="swatches"><span class="swatch" style="background:#fafaf7"></span><span class="swatch" style="background:#3a5a52"></span><span class="swatch" style="background:#7ba7a0"></span><span class="swatch" style="background:#e3efe0"></span><span class="swatch" style="background:#f2efe0"></span></div>
+  <div class="browser">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">http://localhost:8080/</span></div>
+    <div class="stage">
+      <div class="c-reader" id="reader3">
+        <div class="hdr">
+          <span class="logo">
+            <svg class="mark" viewBox="0 0 32 32" width="26" height="26" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+              <path class="page" d="M16 15 C13.3 13.3 7.8 13 4.5 14.2 L4.5 25.6 C7.8 24.4 13.3 24.6 16 26 Z"/>
+              <path class="page" d="M16 15 C18.7 13.3 24.2 13 27.5 14.2 L27.5 25.6 C24.2 24.4 18.7 24.6 16 26 Z"/>
+              <path class="spine" d="M16 15 V26"/>
+              <path class="wave" d="M12.5 11.5 A 4 4 0 0 0 19.5 11.5"/>
+              <path class="wave" d="M9.5 8.5 A 7 7 0 0 0 22.5 8.5"/>
+              <path class="wave" d="M6.5 5.5 A 10 10 0 0 0 25.5 5.5"/>
+            </svg>
+            <span class="word">epub2tts-chatterbox</span>
+          </span>
+          <nav class="nav">
+            <a href="#" class="on">New book</a>
+            <a href="#">Jobs</a>
+            <button class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark mode">
+              <span class="knob"></span>
+              <svg class="ic ic-moon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg class="ic ic-sun" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+              <span class="t-label">Dark</span>
+            </button>
+          </nav>
+        </div>
+        <div class="wrap">
+          <h3>Pick a book</h3>
+          <p class="sub">Pick an EPUB, a voice sample, and optional TTS settings — then review before you start.</p>
+          <div class="field"><label for="r-book">EPUB</label><select id="r-book"><option>The Death Mage Chapters 101 - 200</option><option>A Quiet Forest</option></select></div>
+          <div class="field"><label for="r-sample">Voice sample</label><select id="r-sample"><option>— default voice —</option><option>sample3.wav</option></select></div>
+          <div class="card"><div class="row"><div><div class="name">A Quiet Forest</div><div class="meta"><span class="badge DONE">DONE</span> · 12 chapters · 84 MB</div></div></div></div>
+          <div class="card"><div class="row"><div><div class="name">The Hollow Vale</div><div class="meta"><span class="badge TRANSCRIBING">TRANSCRIBING</span> · 34%</div></div></div></div>
+          <div class="card"><div class="row"><div><div class="name">Letters from the Grove</div><div class="meta"><span class="badge AWAITING_REVIEW">AWAITING REVIEW</span> · 8 chapters</div></div></div></div>
+          <div class="prog" style="position:relative"><div style="width:34%"></div><span>34% — chapter 41 of 120</span></div>
+          <div style="margin-top:16px"><button class="btn">Create job</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10. FROSTED GLASS (WARM) ============ -->
+<section class="concept" id="c10">
+  <div class="concept-head"><span class="num">10</span><h2>Frosted Glass — Warm</h2><span class="tag">dark · glassmorphism · green → amber</span></div>
+  <p class="concept-desc">A soft gradient backdrop (forest green into warm amber/brown) with frosted-glass panels, a floating translucent header, and soft frosted state chips. Premium and current. Purple swapped for warm brown/gold; the book's soundwave bars glow amber.</p>
+  <div class="swatches"><span class="swatch" style="background:#3a5a52"></span><span class="swatch" style="background:#33503f"></span><span class="swatch" style="background:#5a4328"></span><span class="swatch" style="background:linear-gradient(90deg,#7ba7a0,#d6a84a)"></span><span class="swatch" style="background:rgba(255,255,255,0.2)"></span></div>
+  <div class="browser">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">http://localhost:8080/</span></div>
+    <div class="stage">
+      <div class="c-glass">
+        <div class="hdr">
+          <span class="logo">
+            <svg class="mark" viewBox="0 0 32 32" width="26" height="26" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+              <path class="page" d="M16 15 C13.3 13.3 7.8 13 4.5 14.2 L4.5 25.6 C7.8 24.4 13.3 24.6 16 26 Z"/>
+              <path class="page" d="M16 15 C18.7 13.3 24.2 13 27.5 14.2 L27.5 25.6 C24.2 24.4 18.7 24.6 16 26 Z"/>
+              <path class="spine" d="M16 15 V26"/>
+              <path class="wave" d="M12.5 11.5 A 4 4 0 0 0 19.5 11.5"/>
+              <path class="wave" d="M9.5 8.5 A 7 7 0 0 0 22.5 8.5"/>
+              <path class="wave" d="M6.5 5.5 A 10 10 0 0 0 25.5 5.5"/>
+            </svg>
+            <span>epub2tts-chatterbox</span>
+          </span>
+          <nav class="nav"><a href="#" class="on">New book</a><a href="#">Jobs</a></nav>
+        </div>
+        <div class="wrap">
+          <h3>Pick a book</h3>
+          <p class="sub">Pick an EPUB, a voice sample, and optional TTS settings — review before you start.</p>
+          <div class="field"><label for="g-book">EPUB</label><select id="g-book"><option>The Death Mage Chapters 101 - 200</option><option>A Quiet Forest</option></select></div>
+          <div class="card"><div class="row"><div><div class="name">The Death Mage… Chapters 101 - 200</div><div class="meta"><span class="badge AWAITING_REVIEW">AWAITING REVIEW</span> · 100 chapters</div></div></div></div>
+          <div class="card"><div class="row"><div><div class="name">A Quiet Forest</div><div class="meta"><span class="badge DONE">DONE</span> · 12 chapters · 84 MB</div></div></div></div>
+          <div class="card"><div class="row"><div><div class="name">The Hollow Vale</div><div class="meta"><span class="badge TRANSCRIBING">TRANSCRIBING</span> · ch 41/120</div></div></div></div>
+          <div class="card"><div class="row"><div><div class="name">Letters from the Grove</div><div class="meta"><span class="badge FAILED">FAILED</span> · sentence 812</div></div></div></div>
+          <div class="prog" style="position:relative"><div style="width:34%"></div><span>34% — chapter 41 of 120</span></div>
+          <div style="margin-top:16px"><button class="btn">Create job</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="gallery-foot">
+  epub2tts-chatterbox · shortlist board · no code changes made · agent/styling-concepts.md
+</div>
+
+<script>
+  // Working light/dark toggle for concept 3 (demo only — preview board)
+  (function(){
+    var el = document.getElementById('reader3');
+    if(!el) return;
+    var btn = el.querySelector('.theme-toggle');
+    if(!btn) return;
+    var label = btn.querySelector('.t-label');
+    btn.addEventListener('click', function(){
+      var dark = el.classList.toggle('dark');
+      btn.setAttribute('aria-pressed', String(dark));
+      if(label) label.textContent = dark ? 'Light' : 'Dark';
+    });
+  })();
+</script>
+
+</body>
+</html>

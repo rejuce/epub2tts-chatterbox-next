@@ -337,6 +337,25 @@ AWAITING_REVIEW → TRANSCRIBING → DONE
 - `/jobs` — Job list with status badges
 - `/jobs/{id}` — Job detail: progress bar, chapter list, start/cancel/download buttons, SSE auto-refresh
 
+### Styling concepts (2026-11-16) — **Concept 3 · Modern Reader implemented & deployed (2026-11-20)**
+
+> **Concept 3 · Modern Reader** (light, forest-green / natural palette) was implemented,
+> deployed to the dev container, and verified via HTTP. **No other app templates changed.**
+
+- `agent/styling-concepts.md` — brief for 10 concepts (eBook/audiobook theme). Green/natural palette preference.
+- `agent/styling-concepts-preview.html` — all 10 concepts stacked in one self-contained HTML gallery.
+- `agent/styling-concepts-preview-final.html` — shortlist gallery (concepts 3 + 10) with the custom SVG mark and a working light/dark toggle.
+- **Chosen palette direction:** forest green (`#3a5a52`) → warm amber/brown (`#5a4328`).
+- **Assets:** Lucide/Feather (MIT) for icons, Google Fonts (Inter/Lora) for type; everything else hand-built in CSS/SVG.
+- **Implementation:** `epub2tts_chatterbox/web/templates/base.html` rewritten (11,221 B):
+  - CSS variables as single source of truth — `.app.dark` reassigns every var, so the toggle is one class swap.
+  - Sticky header with Lora wordmark + **custom SVG mark** (open book + three amber soundwave arcs, `stroke="currentColor"` so it adapts to theme).
+  - Light/dark toggle: `localStorage` persistence, `aria-pressed`/`aria-label`, moon/sun icons.
+  - Inter body font + Lora wordmark via Google Fonts.
+  - **No changes** to `home.html`/`jobs.html`/`job.html`/`progress.html` — every class they use was preserved.
+- **Template load path:** uvicorn cwd is `/app`; templates load from `/app/.../templates/` (package is non-editable, no templates in site-packages). Deploy `base.html` to `/app` only — verified md5 `8ba8971d…`, uvicorn restarted, `/health` + `/` + `/jobs` all 200, 13/13 theme markers present in rendered HTML.
+- **State:** container verified via HTTP; visual confirmation left to the user (no headless browser). Local `dev` working tree **not committed / not pushed.**
+
 ### Delete / cleanup
 
 - The frontend **Delete job** buttons (job detail: all states; jobs list: all rows
@@ -451,6 +470,27 @@ AWAITING_REVIEW → TRANSCRIBING → DONE
 > **Recs:** (1) prepare conditionals once [A1]; (2) lower `max_new_tokens` [B1] if OOM
 > is a risk; (3) second-wave rsxdalv port [B2]. Keep fp32, inference_mode, no
 > cudnn.benchmark. Excluded: CFG, CFM steps, model swap, half-precision.
+
+## 11a. Multilingual / Language support (issue #8)
+
+- **Status:** not implemented. Issue #8 asks whether the tool can be used with
+  other languages (Chatterbox's 09/04 multilingual update).
+- **Feasibility:** high. Installed `chatterbox-tts 0.1.7` already ships
+  `ChatterboxMultilingualTTS` (`chatterbox/mtl_tts.py`) with 23 supported
+  languages (ar da de el en es fi fr he hi it ja ko ms nl no pl pt ru sv sw tr
+  zh). Same `from_pretrained`/`prepare_conditionals` flow; only `generate()`
+  gains a required `language_id` argument.
+- **What it would touch:** `epub2tts_chatterbox.py` (`--language` + model choice +
+  `generate(text, language_id, ...)`), `epub_export.py` (extract `dc:language`),
+  `web/app.py`+`state.py`+`supervisor.py` (language field end-to-end), docs.
+- **Costs:** one-time ~3–4 GB extra model download (new weight files, not in the
+  current English-only HF cache); quality weaker than English for non-Latin
+  scripts; the reference clip should match the target language; no per-sentence
+  language detection (mixed books unsupported).
+- **Recommended design:** opt-in per job, default `en` (no change for existing
+  English runs); load the multilingual model only for non-`en` codes;
+  auto-suggest from EPUB metadata with manual override. See
+  `agent/progress.md` (2026-11-15 entry) for the full evaluation.
 
 ## 12. Test suite (`tests/`)
 

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>epub2tts-chatterbox — 10 Styling Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=EB+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Orbitron:wght@500;600;700&family=Lora:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Gallery shell ===== */
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: #0a0d0b;
+    color: #e6efe6;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .masthead {
+    padding: 64px 24px 48px;
+    text-align: center;
+    background:
+      radial-gradient(1200px 400px at 50% -10%, rgba(55,214,106,0.14), transparent 60%),
+      radial-gradient(1000px 400px at 50% 120%, rgba(43,122,123,0.14), transparent 60%),
+      #0a0d0b;
+    border-bottom: 1px solid rgba(92,122,85,0.25);
+  }
+  .masthead .kicker {
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: #5c7a55;
+    font-weight: 600;
+    margin: 0 0 14px;
+  }
+  .masthead h1 {
+    margin: 0;
+    font-family: "Lora", serif;
+    font-size: clamp(28px, 5vw, 46px);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #f3efe0;
+  }
+  .masthead p {
+    max-width: 640px;
+    margin: 16px auto 0;
+    color: #a9b7a6;
+    font-size: 15px;
+  }
+  .toc {
+    max-width: 900px;
+    margin: 36px auto 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 10px;
+    padding: 0 8px;
+  }
+  .toc a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #cdd7cd;
+    text-decoration: none;
+    font-size: 13px;
+    transition: 0.15s;
+  }
+  .toc a:hover { background: rgba(55,214,106,0.1); border-color: rgba(55,214,106,0.35); }
+  .toc .num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: #37d66a;
+    border: 1px solid rgba(55,214,106,0.4);
+    border-radius: 6px;
+    padding: 1px 6px;
+  }
+  /* ===== Concept section wrapper ===== */
+  .concept {
+    margin: 48px auto;
+    max-width: 1040px;
+    padding: 0 16px;
+  }
+  .concept-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin: 0 4px 6px;
+  }
+  .concept-head .num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: #0a0d0b;
+    background: #37d66a;
+    border-radius: 8px;
+    padding: 2px 9px;
+    font-weight: 600;
+  }
+  .concept-head h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #f3efe0;
+  }
+  .concept-head .tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: #8b929e;
+    letter-spacing: 0.04em;
+  }
+  .concept-desc {
+    color: #9aa89a;
+    font-size: 13.5px;
+    max-width: 720px;
+    margin: 0 0 18px;
+  }
+  .swatches { display: flex; gap: 6px; margin: 0 0 18px; flex-wrap: wrap; }
+  .swatch {
+    width: 34px; height: 20px; border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  /* ===== Mock browser ===== */
+  .browser {
+    background: #101311;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px -40px rgba(0,0,0,0.9);
+  }
+  .browser .bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .browser .dot { width: 11px; height: 11px; border-radius: 50%; background: #33382f; }
+  .browser .dot.r { background:#5a3a3a; } .browser .dot.y { background:#5a523a; } .browser .dot.g { background:#3a5a3f; }
+  .browser .url {
+    flex: 1; text-align: center; font-family: "IBM Plex Mono", monospace;
+    font-size: 11px; color: #6b7268;
+  }
+  .browser .stage { padding: 0; }
+
+  /* ================= CONCEPT 1 — WARM PAPER ================= */
+  .c-warm { font-family: "EB Garamond", serif; color: #2b2317; background: #f4ecd8; }
+  .c-warm .hdr { display:flex; gap:16px; align-items:center; padding:16px 22px; border-bottom:2px solid #d8c9a0; background:#f4ecd8; }
+  .c-warm .logo { font-family:"Cormorant Garamond",serif; font-size:20px; font-weight:700; color:#7a1f25; letter-spacing:0.02em; }
+  .c-warm .nav { margin-left:auto; display:flex; gap:20px; font-size:14px; }
+  .c-warm .nav a { color:#6b6a2f; text-decoration:none; font-style:italic; }
+  .c-warm .wrap { max-width:900px; margin:0 auto; padding:26px 22px 34px; }
+  .c-warm h3 { font-family:"Cormorant Garamond",serif; font-size:26px; margin:0 0 4px; color:#2b2317; font-weight:600; }
+  .c-warm .sub { color:#7a6f52; font-size:14px; margin:0 0 22px; font-style:italic; }
+  .c-warm .field { margin-bottom:18px; }
+  .c-warm label { display:block; font-size:13px; color:#6b5a3a; margin-bottom:6px; letter-spacing:0.04em; text-transform:uppercase; font-family:Inter,sans-serif; }
+  .c-warm select, .c-warm input[type=text] { width:100%; background:#fbf6e8; border:1px solid #d8c9a0; border-radius:4px; padding:10px 12px; font-family:"EB Garamond",serif; font-size:16px; color:#2b2317; }
+  .c-warm .btn { background:#7a1f25; color:#f4ecd8; border:0; border-radius:3px; padding:10px 20px; font-family:"EB Garamond",serif; font-size:16px; cursor:pointer; letter-spacing:0.02em; }
+  .c-warm .card { background:#fbf6e8; border:1px solid #e0d3b0; border-left:3px solid #7a1f25; border-radius:3px; padding:14px 16px; margin-bottom:12px; box-shadow:0 1px 0 rgba(0,0,0,0.02); }
+  .c-warm .card .name { font-weight:600; font-size:16px; }
+  .c-warm .card .meta { color:#8b7a55; font-size:13px; font-style:italic; }
+  .c-warm .badge { display:inline-block; padding:2px 10px; border-radius:10px; font-size:11px; font-weight:600; font-family:Inter,sans-serif; letter-spacing:0.03em; }
+  .c-warm .badge.DONE { background:#6b6a2f; color:#f4ecd8; }
+  .c-warm .badge.TRANSCRIBING { background:#7a1f25; color:#f4ecd8; }
+  .c-warm .badge.AWAITING_REVIEW { background:#d8c9a0; color:#4a3f24; }
+  .c-warm .badge.FAILED { background:#8b4a4a; color:#f4ecd8; }
+  .c-warm .prog { background:#e8dcc0; border-radius:6px; height:20px; overflow:hidden; position:relative; border:1px solid #d8c9a0; }
+  .c-warm .prog > div { background:linear-gradient(90deg,#7a1f25,#a03035); height:100%; }
+  .c-warm .prog > span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; color:#3a2f18; font-family:Inter,sans-serif; }
+
+  /* ================= CONCEPT 2 — STUDIO DARK ================= */
+  .c-studio { font-family:"Inter",sans-serif; color:#d7dae0; background:#0d0f12; }
+  .c-studio .hdr { display:flex; gap:16px; align-items:center; padding:14px 22px; background:#14181d; border-bottom:1px solid #232a31; }
+  .c-studio .logo { font-family:"Space Grotesk",sans-serif; font-size:16px; font-weight:700; color:#37d66a; letter-spacing:0.02em; }
+  .c-studio .logo .dim { color:#6b7268; }
+  .c-studio .nav { margin-left:auto; display:flex; gap:18px; font-size:13px; color:#8b929e; }
+  .c-studio .nav a { color:#8b929e; text-decoration:none; }
+  .c-studio .nav a.on { color:#37d66a; }
+  .c-studio .wrap { max-width:900px; margin:0 auto; padding:24px 22px 30px; }
+  .c-studio h3 { font-family:"Space Grotesk",sans-serif; font-size:22px; margin:0 0 4px; color:#fff; }
+  .c-studio .sub { color:#7a838d; font-size:13px; margin:0 0 22px; font-family:"IBM Plex Mono",monospace; font-size:12px; }
+  .c-studio .field { margin-bottom:16px; }
+  .c-studio label { display:block; font-size:11px; color:#7a838d; margin-bottom:6px; letter-spacing:0.08em; text-transform:uppercase; font-family:"IBM Plex Mono",monospace; }
+  .c-studio select, .c-studio input[type=text] { width:100%; background:#0a0d10; color:#e6edf0; border:1px solid #232a31; border-radius:6px; padding:10px 12px; font-family:"Inter",sans-serif; font-size:14px; }
+  .c-studio select:focus, .c-studio input:focus { outline:none; border-color:#37d66a; box-shadow:0 0 0 3px rgba(55,214,106,0.15); }
+  .c-studio .btn { background:#37d66a; color:#06110c; border:0; border-radius:6px; padding:10px 20px; font-weight:600; font-family:"Space Grotesk",sans-serif; cursor:pointer; letter-spacing:0.02em; }
+  .c-studio .card { background:#14181d; border:1px solid #232a31; border-radius:8px; padding:14px 16px; margin-bottom:10px; }
+  .c-studio .card .row { display:flex; justify-content:space-between; align-items:center; }
+  .c-studio .card .name { font-weight:600; font-size:14px; }
+  .c-studio .card .meta { color:#7a838d; font-size:12px; font-family:"IBM Plex Mono",monospace; }
+  .c-studio .badge { display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; font-family:"IBM Plex Mono",monospace; }
+  .c-studio .badge .led { width:7px; height:7px; border-radius:50%; }
+  .c-studio .badge.TRANSCRIBING { background:rgba(55,214,106,0.12); color:#57e79a; } .c-studio .badge.TRANSCRIBING .led { background:#37d66a; box-shadow:0 0 8px #37d66a; animation:pulse 1.4s infinite; }
+  .c-studio .badge.DONE { background:rgba(87,199,133,0.12); color:#8fd6b0; } .c-studio .badge.DONE .led { background:#57c785; }
+  .c-studio .badge.AWAITING_REVIEW { background:rgba(224,169,63,0.12); color:#eab95a; } .c-studio .badge.AWAITING_REVIEW .led { background:#e0a93f; }
+  .c-studio .badge.FAILED { background:rgba(224,96,96,0.12); color:#ec8585; } .c-studio .badge.FAILED .led { background:#e06060; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+  .c-studio .prog { background:#0a0d10; border:1px solid #232a31; border-radius:6px; height:24px; overflow:hidden; position:relative; }
+  .c-studio .prog > div { background:linear-gradient(90deg,#1f7a3f,#37d66a); height:100%; box-shadow:0 0 16px rgba(55,214,106,0.5); }
+  .c-studio .prog > span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; color:#06110c; font-weight:700; font-family:"IBM Plex Mono",monospace; }
+
+  /* ================= CONCEPT 3 — MODERN READER ================= */
+  .c-reader { font-family:"Inter",sans-serif; color:#2a2f2c; background:#fafaf7; }
+  .c-reader .hdr { display:flex; gap:16px; align-items:center; padding:14px 22px; background:#fff; border-bottom:1px solid #eceae3; }
+  .c-reader .logo { font-weight:700; font-size:16px; color:#3a5a52; letter-spacing:-0.01em; }
+  .c-reader .nav { margin-left:auto; display:flex; gap:16px; font-size:14px; color:#6b7268; }
+  .c-reader .nav a { color:#6b7268; text-decoration:none; }
+  .c-reader .nav a.on { color:#3a5a52; font-weight:600; }
+  .c-reader .toggle { background:#eef0ec; border:1px solid #e0ddd4; border-radius:20px; padding:5px 12px; font-size:12px; color:#6b7268; }
+  .c-reader .wrap { max-width:900px; margin:0 auto; padding:30px 22px 36px; }
+  .c-reader h3 { font-size:26px; margin:0 0 6px; color:#1f2421; font-weight:700; letter-spacing:-0.02em; }
+  .c-reader .sub { color:#7a837d; font-size:14px; margin:0 0 26px; }
+  .c-reader .field { margin-bottom:18px; }
+  .c-reader label { display:block; font-size:13px; color:#5b635c; margin-bottom:7px; font-weight:600; }
+  .c-reader select, .c-reader input[type=text] { width:100%; background:#fff; color:#2a2f2c; border:1px solid #e0ddd4; border-radius:10px; padding:12px 14px; font-size:15px; box-shadow:0 1px 2px rgba(0,0,0,0.02); }
+  .c-reader select:focus, .c-reader input:focus { outline:none; border-color:#7ba7a0; box-shadow:0 0 0 3px rgba(123,167,160,0.2); }
+  .c-reader .btn { background:#3a5a52; color:#fff; border:0; border-radius:10px; padding:12px 24px; font-weight:600; font-size:15px; cursor:pointer; }
+  .c-reader .card { background:#fff; border:1px solid #eceae3; border-radius:14px; padding:16px 18px; margin-bottom:12px; box-shadow:0 2px 8px rgba(31,36,33,0.04); transition:0.15s; }
+  .c-reader .card:hover { box-shadow:0 8px 22px rgba(31,36,33,0.08); transform:translateY(-1px); }
+  .c-reader .card .name { font-weight:600; font-size:15px; }
+  .c-reader .card .meta { color:#8b928c; font-size:13px; margin-top:3px; }
+  .c-reader .badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+  .c-reader .badge.TRANSCRIBING { background:#e6f0ec; color:#3a5a52; }
+  .c-reader .badge.DONE { background:#e3efe0; color:#4a6a3f; }
+  .c-reader .badge.AWAITING_REVIEW { background:#f2efe0; color:#8a7a3f; }
+  .c-reader .badge.FAILED { background:#f3e4e4; color:#a05050; }
+  .c-reader .prog { background:#eceae3; border-radius:20px; height:22px; overflow:hidden; position:relative; }
+  .c-reader .prog > div { background:linear-gradient(90deg,#5c7a6f,#7ba7a0); height:100%; border-radius:20px; }
+  .c-reader .prog > span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#5b635c; }
+
+  /* ================= CONCEPT 4 — VINTAGE LIBRARY ================= */
+  .c-vintage { font-family:"EB Garamond",serif; color:#efe3c8; background:radial-gradient(circle at 50% 0%, #3a0e14, #2a0a0e 60%, #1f0809); }
+  .c-vintage .hdr { display:flex; gap:16px; align-items:center; padding:18px 22px; background:linear-gradient(#4a1218, #3a0e14); border-bottom:2px solid #c8a25a; box-shadow:0 2px 0 0 #c8a25a33; }
+  .c-vintage .logo { font-family:"Playfair Display",serif; font-size:20px; font-weight:700; color:#c8a25a; letter-spacing:0.04em; }
+  .c-vintage .nav { margin-left:auto; display:flex; gap:22px; font-size:15px; }
+  .c-vintage .nav a { color:#efe3c8; text-decoration:none; font-family:"Playfair Display",serif; font-style:italic; }
+  .c-vintage .wrap { max-width:900px; margin:0 auto; padding:28px 22px 34px; }
+  .c-vintage h3 { font-family:"Playfair Display",serif; font-size:28px; margin:0 0 6px; color:#f0e6cf; font-weight:700; }
+  .c-vintage .sub { color:#c8a25a; font-size:14px; font-style:italic; margin:0 0 24px; }
+  .c-vintage .field { margin-bottom:18px; }
+  .c-vintage label { display:block; font-size:12px; color:#c8a25a; margin-bottom:6px; letter-spacing:0.08em; text-transform:uppercase; font-family:Inter,sans-serif; }
+  .c-vintage select, .c-vintage input[type=text] { width:100%; background:#2a0a0e; color:#efe3c8; border:1px solid #6b2f34; border-radius:4px; padding:11px 13px; font-family:"EB Garamond",serif; font-size:16px; }
+  .c-vintage select:focus, .c-vintage input:focus { outline:none; border-color:#c8a25a; box-shadow:0 0 0 3px rgba(200,162,90,0.2); }
+  .c-vintage .btn { background:linear-gradient(#d4b066,#c8a25a); color:#2a0a0e; border:0; border-radius:4px; padding:11px 24px; font-family:"Playfair Display",serif; font-size:16px; font-weight:700; cursor:pointer; letter-spacing:0.03em; }
+  .c-vintage .card { background:linear-gradient(#3a0e14, #320c11); border:1px solid #6b2f34; border-radius:6px; padding:14px 16px; margin-bottom:12px; box-shadow:inset 0 0 0 1px #00000033; }
+  .c-vintage .card .name { font-weight:600; font-size:16px; color:#f0e6cf; }
+  .c-vintage .card .meta { color:#b89a6a; font-size:13px; font-style:italic; margin-top:3px; }
+  .c-vintage .badge { display:inline-block; padding:3px 12px; border-radius:3px; font-size:11px; font-weight:600; font-family:Inter,sans-serif; letter-spacing:0.04em; border:1px solid #c8a25a; color:#c8a25a; background:rgba(200,162,90,0.08); }
+  .c-vintage .badge.DONE { color:#e0c070; border-color:#e0c070; }
+  .c-vintage .badge.TRANSCRIBING { color:#e0a060; border-color:#e0a060; }
+  .c-vintage .badge.AWAITING_REVIEW { color:#c8a25a; }
+  .c-vintage .badge.FAILED { color:#d08080; border-color:#d08080; }
+  .c-vintage .prog { background:#2a0a0e; border:1px solid #6b2f34; border-radius:4px; height:22px; overflow:hidden; position:relative; }
+  .c-vintage .prog > div { background:linear-gradient(90deg,#8a5a20,#c8a25a); height:100%; }
+  .c-vintage .prog > span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; color:#2a0a0e; font-weight:700; font-family:Inter,sans-serif; }
+
+  /* ================= CONCEPT 5 — TERMINAL / CONSOLE ================= */
+  .c-term { font-family:"IBM Plex Mono",monospace; color:#37d66a; background:#0b0d0f; }
+  .c-term .hdr { display:flex; gap:16px; align-items:center; padding:14px 22px; background:#0a0c0e; border-bottom:1px solid #1c3a24; }
+  .c-term .logo { font-size:15px; font-weight:500; color:#37d66a; text-shadow:0 0 12px rgba(55,214,106,0.5); letter-spacing:0.03em; }
+  .c-term .logo .prompt { color:#1c7a3a; }
+  .c-term .nav { margin-left:auto; display:flex; gap:18px; font-size:13px; color:#2b8a4a; }
+  .c-term .nav a { color:#2b8a4a; text-decoration:none; }
+  .c-term .wrap { max-width:900px; margin:0 auto; padding:24px 22px 30px; }
+  .c-term h3 { font-family:"IBM Plex Mono",monospace; font-size:16px; margin:0 0 4px; color:#37d66a; font-weight:500; }
+  .c-term h3 .cursor { display:inline-block; width:9px; height:16px; background:#37d66a; margin-left:4px; animation:blink 1s steps(1) infinite; vertical-align:middle; }
+  @keyframes blink { 50% { opacity:0; } }
+  .c-term .sub { color:#1c7a3a; font-size:12px; margin:0 0 22px; }
+  .c-term .field { margin-bottom:16px; }
+  .c-term label { display:block; font-size:11px; color:#2b8a4a; margin-bottom:6px; letter-spacing:0.06em; }
+  .c-term select, .c-term input[type=text] { width:100%; background:#0a0c0e; color:#37d66a; border:1px solid #1c3a24; border-radius:0; padding:10px 12px; font-family:"IBM Plex Mono",monospace; font-size:13px; }
+  .c-term select:focus, .c-term input:focus { outline:none; border-color:#37d66a; box-shadow:0 0 0 2px rgba(55,214,106,0.2); }
+  .c-term .btn { background:transparent; color:#37d66a; border:1px solid #37d66a; border-radius:0; padding:10px 20px; font-family:"IBM Plex Mono",monospace; font-size:13px; cursor:pointer; letter-spacing:0.05em; }
+  .c-term .btn:hover { background:rgba(55,214,106,0.12); }
+  .c-term .card { background:#0a0c0e; border:1px solid #1c3a24; border-left:2px solid #37d66a; margin-bottom:10px; padding:12px 14px; }
+  .c-term .card .name { font-size:13px; color:#57e79a; }
+  .c-term .card .meta { font-size:11px; color:#1c7a3a; margin-top:3px; }
+  .c-term .badge { display:inline-block; padding:2px 8px; font-size:10px; font-weight:500; border:1px solid currentColor; color:#37d66a; letter-spacing:0.04em; }
+  .c-term .badge.TRANSCRIBING { color:#37d66a; }
+  .c-term .badge.DONE { color:#57c785; }
+  .c-term .badge.AWAITING_REVIEW { color:#e0a93f; }
+  .c-term .badge.FAILED { color:#e06060; }
+  .c-term .prog { background:#0a0c0e; border:1px solid #1c3a24; height:20px; overflow:hidden; }
+  .c-term .prog > div { background:repeating-linear-gradient(90deg,#37d66a 0 6px, #0a0c0e 6px 8px); height:100%; }
+  .c-term .prog > span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; color:#37d66a; }
+
+  /* ================= CONCEPT 6 — NEON NIGHT ================= */
+  .c-neon { font-family:"Inter",sans-serif; color:#dfe6f0; background:linear-gradient(135deg,#0a0618, #1a0b2e 55%, #0a0618); min-height:400px; }
+  .c-neon .hdr { display:flex; gap:16px; align-items:center; padding:16px 22px; background:rgba(20,10,40,0.6); backdrop-filter:blur(6px); border-bottom:1px solid rgba(232,121,249,0.2); }
+  .c-neon .logo { font-family:"Orbitron",sans-serif; font-size:17px; font-weight:700; background:linear-gradient(90deg,#22d3ee,#e879f9); -webkit-background-clip:text; background-clip:text; color:transparent; text-shadow:0 0 24px rgba(34,211,238,0.4); letter-spacing:0.04em; }
+  .c-neon .nav { margin-left:auto; display:flex; gap:18px; font-size:13px; }
+  .c-neon .nav a { color:#9aa3c0; text-decoration:none; }
+  .c-neon .nav a.on { color:#22d3ee; text-shadow:0 0 12px rgba(34,211,238,0.6); }
+  .c-neon .wrap { max-width:900px; margin:0 auto; padding:26px 22px 32px; }
+  .c-neon h3 { font-family:"Orbitron",sans-serif; font-size:22px; margin:0 0 6px; color:#fff; text-shadow:0 0 20px rgba(232,121,249,0.4); letter-spacing:0.03em; }
+  .c-neon .sub { color:#9aa3c0; font-size:13px; margin:0 0 24px; }
+  .c-neon .field { margin-bottom:16px; }
+  .c-neon label { display:block; font-size:11px; color:#9aa3c0; margin-bottom:6px; letter-spacing:0.08em; text-transform:uppercase; }
+  .c-neon select, .c-neon input[type=text] { width:100%; background:rgba(15,10,30,0.6); color:#dfe6f0; border:1px solid rgba(34,211,238,0.3); border-radius:8px; padding:11px 13px; }
+  .c-neon select:focus, .c-neon input:focus { outline:none; border-color:#22d3ee; box-shadow:0 0 0 3px rgba(34,211,238,0.2), 0 0 20px rgba(34,211,238,0.3); }
+  .c-neon .btn { background:linear-gradient(90deg,#22d3ee,#e879f9); color:#0a0618; border:0; border-radius:8px; padding:11px 22px; font-weight:700; font-family:"Orbitron",sans-serif; font-size:13px; letter-spacing:0.05em; cursor:pointer; box-shadow:0 0 24px rgba(232,121,249,0.5); }
+  .c-neon .card { background:rgba(20,12,40,0.55); border:1px solid rgba(232,121,249,0.2); border-radius:12px; padding:14px 16px; margin-bottom:12px; backdrop-filter:blur(4px); }
+  .c-neon .card .name { font-weight:600; font-size:15px; color:#fff; }
+  .c-neon .card .meta { color:#9aa3c0; font-size:12px; margin-top:3px; }
+  .c-neon .badge { display:inline-block; padding:3px 11px; border-radius:20px; font-size:11px; font-weight:600; }
+  .c-neon .badge.TRANSCRIBING { color:#22d3ee; box-shadow:0 0 14px rgba(34,211,238,0.4); border:1px solid rgba(34,211,238,0.5); }
+  .c-neon .badge.DONE { color:#e879f9; box-shadow:0 0 14px rgba(232,121,249,0.4); border:1px solid rgba(232,121,249,0.5); }
+  .c-neon .badge.AWAITING_REVIEW { color:#e0a93f; border:1px solid rgba(224,169,63,0.5); }
+  .c-neon .badge.FAILED { color:#e06060; border:1px solid rgba(224,96,96,0.5); }
+  .c-neon .prog { background:rgba(15,10,30,0.6); border:1px solid rgba(34,211,238,0.3); border-radius:20px; height:22px; overflow:hidden; position:relative; }
+  .c-neon .prog > div { background:linear-gradient(90deg,#22d3ee,#e879f9); height:100%; box-shadow:0 0 18px rgba(34,211,238,0.7); }
+  .c-neon .prog > span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; color:#0a0618; font-weight:700; }
+
+  /* ================= CONCEPT 7 — MINIMALIST MONOCHROME ================= */
+  .c-mono { font-family:"Inter",sans-serif; color:#1a1a1a; background:#ffffff; }
+  .c-mono .hdr { display:flex; gap:16px; align-items:center; padding:14px 22px; border-bottom:1px solid #e5e5e5; background:#fff; }
+  .c-mono .logo { font-weight:800; font-size:16px; color:#111; letter-spacing:-0.02em; }
+  .c-mono .nav { margin-left:auto; display:flex; gap:18px; font-size:14px; color:#888; }
+  .c-mono .nav a { color:#888; text-decoration:none; }
+  .c-mono .nav a.on { color:#111; font-weight:600; }
+  .c-mono .wrap { max-width:900px; margin:0 auto; padding:30px 22px 36px; }
+  .c-mono h3 { font-size:24px; margin:0 0 6px; color:#111; font-weight:800; letter-spacing:-0.02em; }
+  .c-mono .sub { color:#999; font-size:14px; margin:0 0 26px; }
+  .c-mono .field { margin-bottom:18px; }
+  .c-mono label { display:block; font-size:12px; color:#111; margin-bottom:7px; font-weight:600; }
+  .c-mono select, .c-mono input[type=text] { width:100%; background:#fff; color:#1a1a1a; border:1px solid #d9d9d9; border-radius:6px; padding:11px 13px; font-size:15px; }
+  .c-mono select:focus, .c-mono input:focus { outline:none; border-color:#111; box-shadow:none; }
+  .c-mono .btn { background:#111; color:#fff; border:0; border-radius:6px; padding:11px 22px; font-weight:600; font-size:14px; cursor:pointer; }
+  .c-mono .card { background:#fff; border:1px solid #e5e5e5; border-radius:8px; padding:14px 16px; margin-bottom:10px; }
+  .c-mono .card .name { font-weight:600; font-size:15px; }
+  .c-mono .card .meta { color:#999; font-size:13px; margin-top:3px; }
+  .c-mono .badge { display:inline-block; padding:3px 11px; border-radius:4px; font-size:11px; font-weight:600; border:1px solid #111; color:#111; }
+  .c-mono .badge.DONE { background:#111; color:#fff; }
+  .c-mono .badge.TRANSCRIBING { background:#fff; }
+  .c-mono .badge.AWAITING_REVIEW { background:#fff; }
+  .c-mono .badge.FAILED { background:#111; color:#fff; }
+  .c-mono .prog { background:#f2f2f2; border:1px solid #e5e5e5; border-radius:20px; height:20px; overflow:hidden; position:relative; }
+  .c-mono .prog > div { background:#111; height:100%; }
+  .c-mono .prog > span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:11px; color:#666; }
+
+  /* ================= CONCEPT 8 — CASSETTE / ANALOG ================= */
+  .c-cassette { font-family:"Inter",sans-serif; color:#2b2417; background:#f2e9d8; }
+  .c-cassette .hdr { display:flex; gap:16px; align-items:center; padding:16px 22px; background:#2b7a7b; border-bottom:4px solid #e3b23e; }
+  .c-cassette .logo { font-weight:800; font-size:18px; color:#f2e9d8; letter-spacing:0.02em; font-family:"Playfair Display",serif; }
+  .c-cassette .nav { margin-left:auto; display:flex; gap:18px; font-size:14px; }
+  .c-cassette .nav a { color:#e8dcc0; text-decoration:none; font-weight:600; }
+  .c-cassette .wrap { max-width:900px; margin:0 auto; padding:26px 22px 34px; }
+  .c-cassette h3 { font-family:"Playfair Display",serif; font-size:26px; margin:0 0 6px; color:#2b2417; font-weight:800; }
+  .c-cassette .sub { color:#7a6a3a; font-size:14px; margin:0 0 24px; }
+  .c-cassette .field { margin-bottom:18px; }
+  .c-cassette label { display:block; font-size:12px; color:#2b7a7b; margin-bottom:6px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; }
+  .c-cassette select, .c-cassette input[type=text] { width:100%; background:#fbf5e6; color:#2b2417; border:2px solid #d8c9a0; border-radius:10px; padding:11px 13px; font-size:15px; }
+  .c-cassette select:focus, .c-cassette input:focus { outline:none; border-color:#2b7a7b; box-shadow:0 0 0 3px rgba(43,122,123,0.2); }
+  .c-cassette .btn { background:#e3b23e; color:#2b2417; border:0; border-radius:10px; padding:11px 24px; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 4px 0 #c4972e; }
+  .c-cassette .card { background:#fbf5e6; border:2px solid #2b2a17; border-radius:12px; padding:14px 16px; margin-bottom:12px; box-shadow:4px 4px 0 rgba(43,122,123,0.25); }
+  .c-cassette .card .name { font-weight:700; font-size:15px; }
+  .c-cassette .card .meta { color:#7a6a3a; font-size:13px; margin-top:3px; }
+  .c-cassette .badge { display:inline-block; padding:3px 12px; border-radius:14px; font-size:11px; font-weight:700; border:2px solid #2b2a17; }
+  .c-cassette .badge.TRANSCRIBING { background:#e3b23e; color:#2b2417; }
+  .c-cassette .badge.DONE { background:#2b7a7b; color:#f2e9d8; }
+  .c-cassette .badge.AWAITING_REVIEW { background:#f2e9d8; color:#2b2417; }
+  .c-cassette .badge.FAILED { background:#a05050; color:#f2e9d8; }
+  .c-cassette .prog { background:#e8dcc0; border:2px solid #2b2a17; border-radius:20px; height:24px; overflow:hidden; position:relative; }
+  .c-cassette .prog > div { background:repeating-linear-gradient(90deg,#2b7a7b 0 10px, #f2e9d8 10px 12px); height:100%; }
+  .c-cassette .prog > span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#2b2417; font-weight:700; }
+
+  /* ================= CONCEPT 9 — FOREST READING NOOK ================= */
+  .c-forest { font-family:"Lora",serif; color:#eef2ea; background:radial-gradient(circle at 50% -10%, #2a4d38, #1c3326 55%, #14261b); }
+  .c-forest .hdr { display:flex; gap:16px; align-items:center; padding:18px 22px; background:linear-gradient(#24432f, #1c3326); border-bottom:1px solid rgba(92,122,85,0.4); }
+  .c-forest .logo { font-family:"Lora",serif; font-size:20px; font-weight:600; color:#f3efe0; letter-spacing:0.02em; }
+  .c-forest .logo .leaf { color:#5c7a55; }
+  .c-forest .nav { margin-left:auto; display:flex; gap:22px; font-size:15px; }
+  .c-forest .nav a { color:#a9b7a6; text-decoration:none; }
+  .c-forest .nav a.on { color:#8fd6a0; font-weight:600; }
+  .c-forest .wrap { max-width:900px; margin:0 auto; padding:30px 22px 36px; }
+  .c-forest h3 { font-family:"Lora",serif; font-size:27px; margin:0 0 6px; color:#f3efe0; font-weight:600; }
+  .c-forest .sub { color:#9aa891; font-size:14px; font-style:italic; margin:0 0 26px; }
+  .c-forest .field { margin-bottom:18px; }
+  .c-forest label { display:block; font-size:12px; color:#8fd6a0; margin-bottom:7px; letter-spacing:0.06em; text-transform:uppercase; font-family:Inter,sans-serif; font-weight:600; }
+  .c-forest select, .c-forest input[type=text] { width:100%; background:#17281c; color:#eef2ea; border:1px solid rgba(92,122,85,0.5); border-radius:10px; padding:12px 14px; font-family:"Lora",serif; font-size:16px; }
+  .c-forest select:focus, .c-forest input:focus { outline:none; border-color:#5c7a55; box-shadow:0 0 0 3px rgba(92,122,85,0.25); }
+  .c-forest .btn { background:linear-gradient(#5c7a55, #4a6a45); color:#f3efe0; border:0; border-radius:10px; padding:12px 26px; font-family:"Lora",serif; font-size:16px; font-weight:600; cursor:pointer; box-shadow:0 6px 18px -6px rgba(92,122,85,0.8); }
+  .c-forest .card { background:linear-gradient(#24432f, #1f3a2a); border:1px solid rgba(92,122,85,0.35); border-radius:14px; padding:16px 18px; margin-bottom:12px; box-shadow:0 8px 22px -14px rgba(0,0,0,0.7); }
+  .c-forest .card .name { font-weight:600; font-size:16px; color:#f3efe0; }
+  .c-forest .card .meta { color:#9aa891; font-size:13px; font-style:italic; margin-top:4px; }
+  .c-forest .badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:600; font-family:Inter,sans-serif; letter-spacing:0.03em; }
+  .c-forest .badge.TRANSCRIBING { background:rgba(143,214,160,0.18); color:#8fd6a0; border:1px solid rgba(143,214,160,0.4); }
+  .c-forest .badge.DONE { background:rgba(92,122,85,0.25); color:#b7d0b2; border:1px solid rgba(92,122,85,0.5); }
+  .c-forest .badge.AWAITING_REVIEW { background:rgba(224,169,63,0.16); color:#eab95a; border:1px solid rgba(224,169,63,0.4); }
+  .c-forest .badge.FAILED { background:rgba(224,96,96,0.16); color:#ec8585; border:1px solid rgba(224,96,96,0.4); }
+  .c-forest .prog { background:#14261b; border:1px solid rgba(92,122,85,0.4); border-radius:20px; height:22px; overflow:hidden; position:relative; }
+  .c-forest .prog > div { background:linear-gradient(90deg,#3f6a45,#5c7a55,#8fd6a0); height:100%; border-radius:20px; }
+  .c-forest .prog > span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#eaf3e6; font-family:Inter,sans-serif; font-weight:600; }
+
+  /* ================= CONCEPT 10 — FROSTED GLASS ================= */
+  .c-glass { font-family:"Inter",sans-serif; color:#eef0f5; background:linear-gradient(135deg,#3a5a52 0%, #2a3f5a 45%, #4a3a5a 100%); min-height:420px; position:relative; overflow:hidden; }
+  .c-glass::before { content:""; position:absolute; top:-20%; left:-10%; width:60%; height:60%; background:radial-gradient(circle, rgba(123,167,160,0.4), transparent 60%); filter:blur(30px); }
+  .c-glass::after { content:""; position:absolute; bottom:-20%; right:-10%; width:60%; height:60%; background:radial-gradient(circle, rgba(232,121,249,0.25), transparent 60%); filter:blur(30px); }
+  .c-glass .hdr { position:relative; display:flex; gap:16px; align-items:center; padding:16px 22px; background:rgba(255,255,255,0.06); backdrop-filter:blur(14px); border-bottom:1px solid rgba(255,255,255,0.12); }
+  .c-glass .logo { font-weight:700; font-size:17px; color:#fff; letter-spacing:-0.01em; }
+  .c-glass .nav { margin-left:auto; display:flex; gap:18px; font-size:14px; }
+  .c-glass .nav a { color:#d5dbe6; text-decoration:none; }
+  .c-glass .nav a.on { color:#fff; font-weight:600; }
+  .c-glass .wrap { position:relative; max-width:900px; margin:0 auto; padding:28px 22px 34px; }
+  .c-glass h3 { font-size:25px; margin:0 0 6px; color:#fff; font-weight:700; letter-spacing:-0.02em; }
+  .c-glass .sub { color:#d0d6e0; font-size:14px; margin:0 0 26px; }
+  .c-glass .field { margin-bottom:18px; }
+  .c-glass label { display:block; font-size:12px; color:#cdd6e2; margin-bottom:7px; font-weight:600; }
+  .c-glass select, .c-glass input[type=text] { width:100%; background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.16); border-radius:12px; padding:12px 14px; font-size:15px; backdrop-filter:blur(6px); }
+  .c-glass select:focus, .c-glass input:focus { outline:none; border-color:rgba(255,255,255,0.4); box-shadow:0 0 0 3px rgba(255,255,255,0.1); }
+  .c-glass .btn { background:rgba(255,255,255,0.95); color:#2a3f5a; border:0; border-radius:12px; padding:12px 26px; font-weight:600; font-size:15px; cursor:pointer; backdrop-filter:blur(6px); }
+  .c-glass .card { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:16px; padding:16px 18px; margin-bottom:12px; backdrop-filter:blur(14px); box-shadow:0 8px 26px -16px rgba(0,0,0,0.6); }
+  .c-glass .card .name { font-weight:600; font-size:15px; color:#fff; }
+  .c-glass .card .meta { color:#c0c8d6; font-size:13px; margin-top:4px; }
+  .c-glass .badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:600; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#eef0f5; }
+  .c-glass .badge.TRANSCRIBING { background:rgba(123,167,160,0.25); border-color:rgba(123,167,160,0.5); color:#d5f0e6; }
+  .c-glass .badge.DONE { background:rgba(92,122,85,0.28); border-color:rgba(92,122,85,0.5); }
+  .c-glass .badge.AWAITING_REVIEW { background:rgba(224,169,63,0.22); border-color:rgba(224,169,63,0.5); color:#f4e6c0; }
+  .c-glass .badge.FAILED { background:rgba(224,96,96,0.22); border-color:rgba(224,96,96,0.5); color:#f6d5d5; }
+  .c-glass .prog { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18); border-radius:20px; height:22px; overflow:hidden; position:relative; backdrop-filter:blur(6px); }
+  .c-glass .prog > div { background:linear-gradient(90deg,rgba(255,255,255,0.7),#fff); height:100%; border-radius:20px; }
+  .c-glass .prog > span { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:#2a3f5a; font-weight:700; }
+
+  /* ===== Footer ===== */
+  .gallery-foot { text-align:center; padding:40px 24px 70px; color:#6b7268; font-size:12px; font-family:"IBM Plex Mono",monospace; }
+  .gallery-foot a { color:#5c7a55; }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <p class="kicker">Styling Concepts</p>
+  <h1>epub2tts-chatterbox — 10 Visual Directions</h1>
+  <p>Same app (FastAPI + HTMX + Jinja2). Six shared screens per concept — the header, the <em>Pick a book</em> form, recent-job cards, state badges, the live progress bar, and the Start button. Scroll through them one after another.</p>
+  <nav class="toc">
+    <a href="#c1"><span class="num">01</span> Warm Paper</a>
+    <a href="#c2"><span class="num">02</span> Studio Dark</a>
+    <a href="#c3"><span class="num">03</span> Modern Reader</a>
+    <a href="#c4"><span class="num">04</span> Vintage Library</a>
+    <a href="#c5"><span class="num">05</span> Terminal / Console</a>
+    <a href="#c6"><span class="num">06</span> Neon Night</a>
+    <a href="#c7"><span class="num">07</span> Minimalist Monochrome</a>
+    <a href="#c8"><span class="num">08</span> Cassette / Analog</a>
+    <a href="#c9"><span class="num">09</span> Forest Reading Nook</a>
+    <a href="#c10"><span class="num">10</span> Frosted Glass</a>
+  </nav>
+</div>
+
+<!-- ============ 1. WARM PAPER ============ -->
+<section class="concept" id="c1">
+  <div class="concept-head"><span class="num">01</span><h2>Warm Paper</h2><span class="tag">light · literary · serif</span></div>
+  <p class="concept-desc">The "open book" reader. Cream parchment, ink text, oxblood + olive accents, humanist serif headings. Cards read as pages with a left spine; badges as wax seals.</p>
+  <div class="swatches"><span class="swatch" style="background:#f4ecd8"></span><span class="swatch" style="background:#2b2317"></span><span class="swatch" style="background:#7a1f25"></span><span class="swatch" style="background:#6b6a2f"></span><span class="swatch" style="background:#d8c9a0"></span></div>
+  <div class="browser">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">http://localhost:8080/</span></div>
+    <div class="stage">
+      <div class="c-warm">
+        <div class="hdr">
+          <span class="logo">📚 epub2tts-chatterbox</span>
+          <nav class="nav"><a href="#">New book</a><a href="#">Jobs</a></nav>
+        </div>
+        <div class="wrap">
+          <h3>1. Pick a book</h3>
+          <p class="sub">The book is extracted to text — a few seconds — then you review chapters before TTS.</p>
+          <div class="field"><label for="w-book">EPUB (from /data/books)</label><select id="w-book"><option>The Death Mage Chapters 101 - 200 (1523.4 MB)</option><option>A Quiet Forest (48.2 MB)</option></select></div>
+          <div class="card"><div class="name">The Death Mage Who Doesn't… Chapters 101 - 200</div><div class="meta">AWAITING_REVIEW · 100 chapters · sample3.wav</div></div>
+          <div class="card"><div class="name">A Quiet Forest</div><div class="meta"><span class="badge DONE">DONE</span> · 12 chapters · 84.1 MB</div></div>
+          <div class="card"><div class="name">The Hollow Vale</div><div class="meta"><span class="badge TRANSCRIBING">TRANSCRIBING</span> · ch. 41/120</div></div>
+          <div class="card"><div class="name">Letters from the Grove</div><div class="meta"><span class="badge FAILED">FAILED</span> · sentence 812</div></div>
+          <div class="prog" style="position:relative"><div style="width:34%"></div><span>34% — chapter 41 / 120 · ETA 4h 12m</span></div>
+          <div style="margin-top:16px"><button class="btn">Create job →</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2. STUDIO DARK ============ -->
+<section class="concept" id="c2">
+  <div class="concept-head"><span class="num">02</span><h2>Studio Dark</h2><span class="tag">dark · pro-audio · waveform</span></div>
+  <p class="concept-desc">A dark DAW / recording-studio palette. Neon-green meters, monospace readouts, and a live progress bar styled as a transport/waveform. Chapter list reads like tracks on a mixing board.</p>
+  <div class="swatches"><span class="swatch" style="background:#0d0f12"></span><span class="swatch" style="background:#14181d"></span><span class="swatch" style="background:#37d66a"></span><span class="swatch" style="background:#e0a93f"></span><span class="swatch" style="background:#8b929e"></span></div>
+  <div class="browser">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">http://localhost:8080/</span></div>
+    <div class="stage">
+      <div class="c-studio">
+        <div class="hdr">
+          <span class="logo">epub2tts<span class="dim">/chatterbox</span></span>
+          <nav class="nav"><a href="#" class="on">New book</a><a href="#">Jobs</a></nav>
+        </div>
+        <div class="wrap">
+          <h3>New session</h3>
+          <p class="sub">EPUB → text → chatterbox → m4b &nbsp;·&nbsp; single job lock active</p>
+          <div class="field"><label for="s-book">EPUB input</label><select id="s-book"><option>the-death-mage-20261101-2049.epub</option><option>quiet-forest.epub</option></select></div>
+          <div class="card"><div class="row"><span class="name">the-death-mage-20261101-2049</span><span class="meta">100 ch</span></div><div class="row" style="margin-top:8px"><span class="badge TRANSCRIBING"><span class="led"></span>TRANSCRIBING</span><span class="meta">ch 41/120</span></div></div>
+          <div class="card"><div class="row"><span class="name">quiet-forest-20261102-0915</span><span class="meta">12 ch</span></div><div class="row" style="margin-top:8px"><span class="badge DONE"><span class="led"></span>DONE</span><span class="meta">186 KB</span></div></div>
+          <div class="card"><div class="row"><span class="name">hollow-vale-20261103-1802</span><span class="meta">—</span></div><div class="row" style="margin-top:8px"><span class="badge AWAITING_REVIEW"><span class="led"></span>AWAITING_REVIEW</span><span class="meta">pending</span></div></div>
+          <div class="card"><div class="row"><span class="name">letters-from-the-grove</span><span class="meta">—</span></div><div class="row" style="margin-top:8px"><span class="badge FAILED"><span class="led"></span>FAILED</span><span class="meta">sentence 812</span></div></div>
+          <div class="prog" style="position:relative"><div style="width:34%"></div><span>34% · ch 41/120 · ETA 04:12:08</span></div>
+          <div style="margin-top:16px"><button class="btn">▶ Start transcription</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. MODERN READER ============ -->
+<section class="concept" id="c3">
+  <div class="concept-head"><span class="num">03</span><h2>Modern Reader</h2><span class="tag">light · airy · toggle</span></div>
+  <p class="concept-desc">Bright, Kindle/Kobo-clean. Soft rounded cards, generous whitespace, one-click light/dark toggle, and a "reading mode" that maximizes the chapter-review text.</p>
+  <div class="swatches"><span class="swatch" style="background:#fafaf7"></span><span class="swatch" style="background:#3a5a52"></span><span class="swatch" style="background:#7ba7a0"></span><span class="swatch" style="background:#e3efe0"></span><span class="swatch" style="background:#f2efe0"></span></div>
+  <div class="browser">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">http://localhost:8080/</span></div>
+    <div class="stage">
+      <div class="c-reader">
+        <div class="hdr">
+          <span class="logo">📚 epub2tts-chatterbox</span>
+          <nav class="nav"><a href="#" class="on">New book</a><a href="#">Jobs</a><span class="toggle">🌙 Dark</span></nav>
+        </div>
+        <div class="wrap">
+          <h3>Pick a book</h3>
+          <p class="sub">Pick an EPUB, a voice sample, and optional TTS settings — then review before you start.</p>
+          <div class="field"><label for="r-book">EPUB</label><select id="r-book"><option>The Death Mage Chapters 101 - 200</option><option>A Quiet Forest</option></select></div>
+          <div class="field"><label for="r-sample">Voice sample</label><select id="r-sample"><option>— default voice —</option><option>sample3.wav</option></select></div>
+          <div class="card"><div class="name">A Quiet Forest</div><div class="meta"><span class="badge DONE">DONE</span> · 12 chapters · 84 MB</div></div>
+          <div class="card"><div class="name">The Hollow Vale</div><div class="meta"><span class="badge TRANSCRIBING">TRANSCRIBING</span> · 34%</div></div>
+          <div class="card"><div class="name">Letters from the Grove</div><div class="meta"><span class="badge AWAITING_REVIEW">AWAITING REVIEW</span> · 8 chapters</div></div>
+          <div class="prog" style="position:relative"><div style="width:34%"></div><span>34% — chapter 41 of 120</span></div>
+          <div style="margin-top:16px"><button class="btn">Create job</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. VINTAGE LIBRARY ============ -->
+<section class="concept" id="c4">
+  <div class="concept-head"><span class="num">04</span><h2>Vintage Library</h2><span class="tag">warm · leather & brass · serif</span></div>
+  <p class="concept-desc">Deep oxblood panels, brass and gold rules, and serif display type — the feeling of a classic leather-bound library. Job cards read as leather-bound spines.</p>
+  <div class="swatches"><span class="swatch" style="background:#4a1218"></span><span class="swatch" style="background:#c8a25a"></span><span class="swatch" style="background:#efe3c8"></span><span class="swatch" style="background:#8a5a20"></span><span class="swatch" style="background:#2a0a0e"></span></div>
+  <div class="browser">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">http://localhost:8080/</span></div>
+    <div class="stage">
+      <div class="c-vintage">
+        <div class="hdr">
+          <span class="logo">📚 epub2tts-chatterbox</span>
+          <nav class="nav"><a href="#">New book</a><a href="#">Jobs</a></nav>
+        </div>
+        <div class="wrap">
+          <h3>1. Choose a volume</h3>
+          <p class="sub">The volume is transcribed to audio — review the chapters before recording begins.</p>
+          <div class="field"><label for="v-book">EPUB from /data/books</label><select id="v-book"><option>The Death Mage Chapters 101 - 200</option><option>A Quiet Forest</option></select></div>
+          <div class="card"><div class="name">The Death Mage Who Doesn't… Chapters 101 - 200</div><div class="meta"><span class="badge AWAITING_REVIEW">AWAITING REVIEW</span> · 100 chapters</div></div>
+          <div class="card"><div class="name">A Quiet Forest</div><div class="meta"><span class="badge DONE">DONE</span> · 12 chapters</div></div>
+          <div class="card"><div class="name">The Hollow Vale</div><div class="meta"><span class="badge TRANSCRIBING">TRANSCRIBING</span> · ch 41/120</div></div>
+          <div class="card"><div class="name">Letters from the Grove</div><div class="meta"><span class="badge FAILED">FAILED</span> · sentence 812</div></div>
+          <div class="prog" style="position:relative"><div style="width:34%"></div><span>34% · ch 41 of 120 · ETA 4h 12m</span></div>
+          <div style="margin-top:16px"><button class="btn">Create job →</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 5. TERMINAL / CONSOLE ============ -->
+<section class="concept" id="c5">
+  <div class="concept-head"><span class="num">05</span><h2>Terminal / Console</h2><span class="tag">dark · monospace · CLI homage</span></div>
+  <p class="concept-desc">Homage to the tool's CLI roots: monospace throughout, phosphor-green on black, a blinking cursor in the live pane, and badges styled as <code>[TRANSCRIBING]</code> tags.</p>
+  <div class="swatches"><span class="swatch" style="background:#0b0d0f"></span><span class="swatch" style="background:#37d66a"></span><span class="swatch" style="background:#1c7a3a"></span><span class="swatch" style="background:#2b8a4a"></span><span class="swatch" style="background:#e0a93f"></span></div>
+  <div class="browser">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">http://localhost:8080/</span></div>
+    <div class="stage">
+      <div class="c-term">
+        <div class="hdr">
+          <span class="logo"><span class="prompt">$</span> epub2tts-chatterbox</span>
+          <nav class="nav"><a href="#">new book</a><a href="#">jobs</a></nav>
+        </div>
+        <div class="wrap">
+          <h3>$ create job <span class="cursor"></span></h3>
+          <p class="sub">// EPUB → text → chatterbox → m4b</p>
+          <div class="field"><label for="t-book">book=</label><select id="t-book"><option>the-death-mage-20261101-2049.epub</option><option>quiet-forest.epub</option></select></div>
+          <div class="card"><div class="name">&gt; the-death-mage-20261101-2049</div><div class="meta"><span class="badge TRANSCRIBING">[TRANSCRIBING]</span> ch 41/120</div></div>
+          <div class="card"><div class="name">&gt; quiet-forest-20261102-0915</div><div class="meta"><span class="badge DONE">[DONE]</span> 186 KB</div></div>
+          <div class="card"><div class="name">&gt; hollow-vale-20261103-1802</div><div class="meta"><span class="badge AWAITING_REVIEW">[AWAITING]</span> pending</div></div>
+          <div class="card"><div class="name">&gt; letters-from-the-grove</div><div class="meta"><span class="badge FAILED">[FAILED]</span> sentence 812</div></div>
+          <div class="prog" style="position:relative"><div style="width:34%"></div><span>34% ch 41/120 ETA 4h12</span></div>
+          <div style="margin-top:16px"><button class="btn">&gt; ENTER</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6. NEON NIGHT ============ -->
+<section class="concept" id="c6">
+  <div class="concept-head"><span class="num">06</span><h2>Neon Night</h2><span class="tag">dark · cyan & magenta · glow</span></div>
+  <p class="concept-desc">Deep purple gradient, neon cyan + magenta accents, glowing outlines on hover, and a progress bar that reads like a neon tube. Late-night rendering studio.</p>
+  <div class="swatches"><span class="swatch" style="background:#0a0618"></span><span class="swatch" style="background:#1a0b2e"></span><span class="swatch" style="background:#22d3ee"></span><span class="swatch" style="background:#e879f9"></span><span class="swatch" style="background:#9aa3c0"></span></div>
+  <div class="browser">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">http://localhost:8080/</span></div>
+    <div class="stage">
+      <div class="c-neon">
+        <div class="hdr">
+          <span class="logo">EPUB2TTS · CHATTERBOX</span>
+          <nav class="nav"><a href="#" class="on">New book</a><a href="#">Jobs</a></nav>
+        </div>
+        <div class="wrap">
+          <h3>New render job</h3>
+          <p class="sub">EPUB → text → chatterbox → m4b &nbsp;·&nbsp; GPU: GTX 1080 · fp32</p>
+          <div class="field"><label for="n-book">EPUB source</label><select id="n-book"><option>the-death-mage-20261101-2049.epub</option><option>quiet-forest.epub</option></select></div>
+          <div class="card"><div class="name">the-death-mage-20261101-2049</div><div class="meta"><span class="badge TRANSCRIBING">TRANSCRIBING</span> · ch 41/120</div></div>
+          <div class="card"><div class="name">quiet-forest-20261102-0915</div><div class="meta"><span class="badge DONE">DONE</span> · 186 KB</div></div>
+          <div class="card"><div class="name">hollow-vale-20261103-1802</div><div class="meta"><span class="badge AWAITING_REVIEW">AWAITING REVIEW</span> · pending</div></div>
+          <div class="card"><div class="name">letters-from-the-grove</div><div class="meta"><span class="badge FAILED">FAILED</span> · sentence 812</div></div>
+          <div class="prog" style="position:relative"><div style="width:34%"></div><span>34% · ch 41/120 · ETA 04:12:08</span></div>
+          <div style="margin-top:16px"><button class="btn">▶ START</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 7. MINIMALIST MONOCHROME ============ -->
+<section class="concept" id="c7">
+  <div class="concept-head"><span class="num">07</span><h2>Minimalist Monochrome</h2><span class="tag">light · typographic · one accent</span></div>
+  <p class="concept-desc">Pure black/white/gray with a single accent used only for action states. Type, spacing, and hairline borders do all the work — quiet and timeless.</p>
+  <div class="swatches"><span class="swatch" style="background:#ffffff"></span><span class="swatch" style="background:#111111"></span><span class="swatch" style="background:#e5e5e5"></span><span class="swatch" style="background:#999999"></span><span class="swatch" style="background:#f2f2f2"></span></div>
+  <div class="browser">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">http://localhost:8080/</span></div>
+    <div class="stage">
+      <div class="c-mono">
+        <div class="hdr">
+          <span class="logo">epub2tts-chatterbox</span>
+          <nav class="nav"><a href="#" class="on">New book</a><a href="#">Jobs</a></nav>
+        </div>
+        <div class="wrap">
+          <h3>New book</h3>
+          <p class="sub">Pick an EPUB, a voice sample, and optional settings.</p>
+          <div class="field"><label for="m-book">EPUB</label><select id="m-book"><option>The Death Mage Chapters 101 - 200</option><option>A Quiet Forest</option></select></div>
+          <div class="card"><div class="name">The Death Mage… Chapters 101 - 200</div><div class="meta"><span class="badge AWAITING_REVIEW">AWAITING REVIEW</span> · 100 chapters</div></div>
+          <div class="card"><div class="name">A Quiet Forest</div><div class="meta"><span class="badge DONE">DONE</span> · 12 chapters</div></div>
+          <div class="card"><div class="name">The Hollow Vale</div><div class="meta"><span class="badge TRANSCRIBING">TRANSCRIBING</span> · ch 41/120</div></div>
+          <div class="card"><div class="name">Letters from the Grove</div><div class="meta"><span class="badge FAILED">FAILED</span> · sentence 812</div></div>
+          <div class="prog" style="position:relative"><div style="width:34%"></div><span>34% — 41 / 120</span></div>
+          <div style="margin-top:16px"><button class="btn">Create job →</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 8. CASSETTE / ANALOG ============ -->
+<section class="concept" id="c8">
+  <div class="concept-head"><span class="num">08</span><h2>Cassette / Analog Nostalgia</h2><span class="tag">warm · chunky · cassette motif</span></div>
+  <p class="concept-desc">Audiobooks predate streaming — so lean into cassette/VHS nostalgia. Warm mustard + teal + cream, chunky offset shadows, and a progress bar styled as tape running through a head.</p>
+  <div class="swatches"><span class="swatch" style="background:#f2e9d8"></span><span class="swatch" style="background:#2b7a7b"></span><span class="swatch" style="background:#e3b23e"></span><span class="swatch" style="background:#2b2417"></span><span class="swatch" style="background:#a05050"></span></div>
+  <div class="browser">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">http://localhost:8080/</span></div>
+    <div class="stage">
+      <div class="c-cassette">
+        <div class="hdr">
+          <span class="logo">📼 epub2tts-chatterbox</span>
+          <nav class="nav"><a href="#">New book</a><a href="#">Jobs</a></nav>
+        </div>
+        <div class="wrap">
+          <h3>1. Pick a tape</h3>
+          <p class="sub">Load an EPUB, pick a voice, and review the chapters before recording.</p>
+          <div class="field"><label for="cs-book">EPUB (from /data/books)</label><select id="cs-book"><option>The Death Mage Chapters 101 - 200</option><option>A Quiet Forest</option></select></div>
+          <div class="card"><div class="name">The Death Mage… Chapters 101 - 200</div><div class="meta"><span class="badge AWAITING_REVIEW">AWAITING REVIEW</span> · 100 chapters</div></div>
+          <div class="card"><div class="name">A Quiet Forest</div><div class="meta"><span class="badge DONE">DONE</span> · 12 chapters</div></div>
+          <div class="card"><div class="name">The Hollow Vale</div><div class="meta"><span class="badge TRANSCRIBING">TRANSCRIBING</span> · ch 41/120</div></div>
+          <div class="card"><div class="name">Letters from the Grove</div><div class="meta"><span class="badge FAILED">FAILED</span> · sentence 812</div></div>
+          <div class="prog" style="position:relative"><div style="width:34%"></div><span>34% · ch 41 / 120</span></div>
+          <div style="margin-top:16px"><button class="btn">Create job →</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9. FOREST READING NOOK ============ -->
+<section class="concept" id="c9">
+  <div class="concept-head"><span class="num">09</span><h2>Forest Reading Nook</h2><span class="tag">dark · forest green · organic</span></div>
+  <p class="concept-desc">Deep forest greens, moss, and cream — calm and low-contrast for long reading/TTS sessions. Humanist serif type, matte surfaces, and soft leafy-green state dots. <strong>(The natural/green direction.)</strong></p>
+  <div class="swatches"><span class="swatch" style="background:#14261b"></span><span class="swatch" style="background:#1c3326"></span><span class="swatch" style="background:#5c7a55"></span><span class="swatch" style="background:#8fd6a0"></span><span class="swatch" style="background:#f3efe0"></span></div>
+  <div class="browser">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">http://localhost:8080/</span></div>
+    <div class="stage">
+      <div class="c-forest">
+        <div class="hdr">
+          <span class="logo"><span class="leaf">🍃</span> epub2tts-chatterbox</span>
+          <nav class="nav"><a href="#">New book</a><a href="#" class="on">Jobs</a></nav>
+        </div>
+        <div class="wrap">
+          <h3>1. Choose a chapter</h3>
+          <p class="sub">Select a book from the shelves, pick a voice, and review the text before recording in the nook.</p>
+          <div class="field"><label for="f-book">EPUB (from /data/books)</label><select id="f-book"><option>The Death Mage Chapters 101 - 200</option><option>A Quiet Forest</option><option>Letters from the Grove</option></select></div>
+          <div class="field"><label for="f-sample">Voice sample</label><select id="f-sample"><option>— default voice —</option><option>sample3.wav</option></select></div>
+          <div class="card"><div class="name">A Quiet Forest</div><div class="meta"><span class="badge DONE">DONE</span> · 12 chapters · 84 MB · sample3.wav</div></div>
+          <div class="card"><div class="name">The Hollow Vale</div><div class="meta"><span class="badge TRANSCRIBING">TRANSCRIBING</span> · ch 41/120 · ETA 4h 12m</div></div>
+          <div class="card"><div class="name">Letters from the Grove</div><div class="meta"><span class="badge AWAITING_REVIEW">AWAITING REVIEW</span> · 8 chapters</div></div>
+          <div class="card"><div class="name">The Death Mage… Chapters 101 - 200</div><div class="meta"><span class="badge FAILED">FAILED</span> · sentence 812</div></div>
+          <div class="prog" style="position:relative"><div style="width:34%"></div><span>34% — chapter 41 of 120</span></div>
+          <div style="margin-top:16px"><button class="btn">Create job →</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10. FROSTED GLASS ============ -->
+<section class="concept" id="c10">
+  <div class="concept-head"><span class="num">10</span><h2>Frosted Glass</h2><span class="tag">modern · glassmorphism · depth</span></div>
+  <p class="concept-desc">A soft gradient backdrop with frosted-glass panels, a floating translucent header, and soft frosted state chips. Premium and current.</p>
+  <div class="swatches"><span class="swatch" style="background:#3a5a52"></span><span class="swatch" style="background:#2a3f5a"></span><span class="swatch" style="background:#4a3a5a"></span><span class="swatch" style="background:linear-gradient(90deg,#7ba7a0,#e879f9)"></span><span class="swatch" style="background:rgba(255,255,255,0.2)"></span></div>
+  <div class="browser">
+    <div class="bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="url">http://localhost:8080/</span></div>
+    <div class="stage">
+      <div class="c-glass">
+        <div class="hdr">
+          <span class="logo">📚 epub2tts-chatterbox</span>
+          <nav class="nav"><a href="#" class="on">New book</a><a href="#">Jobs</a></nav>
+        </div>
+        <div class="wrap">
+          <h3>Pick a book</h3>
+          <p class="sub">Pick an EPUB, a voice sample, and optional TTS settings — review before you start.</p>
+          <div class="field"><label for="g-book">EPUB</label><select id="g-book"><option>The Death Mage Chapters 101 - 200</option><option>A Quiet Forest</option></select></div>
+          <div class="card"><div class="name">The Death Mage… Chapters 101 - 200</div><div class="meta"><span class="badge AWAITING_REVIEW">AWAITING REVIEW</span> · 100 chapters</div></div>
+          <div class="card"><div class="name">A Quiet Forest</div><div class="meta"><span class="badge DONE">DONE</span> · 12 chapters · 84 MB</div></div>
+          <div class="card"><div class="name">The Hollow Vale</div><div class="meta"><span class="badge TRANSCRIBING">TRANSCRIBING</span> · ch 41/120</div></div>
+          <div class="card"><div class="name">Letters from the Grove</div><div class="meta"><span class="badge FAILED">FAILED</span> · sentence 812</div></div>
+          <div class="prog" style="position:relative"><div style="width:34%"></div><span>34% — chapter 41 of 120</span></div>
+          <div style="margin-top:16px"><button class="btn">Create job</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="gallery-foot">
+  epub2tts-chatterbox · styling concept board · no code changes made · see agent/styling-concepts.md for the written brief
+</div>
+
+</body>
+</html>

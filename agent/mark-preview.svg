@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="240" viewBox="0 0 640 240" font-family="Inter, system-ui, sans-serif">
+  <!-- light -->
+  <rect x="0" y="0" width="213" height="240" fill="#fafaf7"/>
+  <text x="16" y="28" font-size="12" fill="#5b635c" font-weight="600">LIGHT (concept 3)</text>
+  <g transform="translate(72,70)">
+    <path fill="#3a5a52" stroke="none" d="M16 15 C13.3 13.3 7.8 13 4.5 14.2 L4.5 25.6 C7.8 24.4 13.3 24.6 16 26 Z"/>
+    <path fill="#3a5a52" stroke="none" d="M16 15 C18.7 13.3 24.2 13 27.5 14.2 L27.5 25.6 C24.2 24.4 18.7 24.6 16 26 Z"/>
+    <path fill="none" stroke="#2f4a44" stroke-width="0.9" d="M16 15 V26"/>
+    <path fill="none" stroke="#d6a84a" stroke-width="1.7" stroke-linecap="round" d="M12.5 11.5 A 4 4 0 0 0 19.5 11.5"/>
+    <path fill="none" stroke="#d6a84a" stroke-width="1.7" stroke-linecap="round" d="M9.5 8.5 A 7 7 0 0 0 22.5 8.5"/>
+    <path fill="none" stroke="#d6a84a" stroke-width="1.7" stroke-linecap="round" d="M6.5 5.5 A 10 10 0 0 0 25.5 5.5"/>
+  </g>
+  <!-- dark -->
+  <rect x="213" y="0" width="213" height="240" fill="#151a17"/>
+  <text x="229" y="28" font-size="12" fill="#8f9c90" font-weight="600">DARK (concept 3)</text>
+  <g transform="translate(285,70)">
+    <path fill="#eef2ee" stroke="none" d="M16 15 C13.3 13.3 7.8 13 4.5 14.2 L4.5 25.6 C7.8 24.4 13.3 24.6 16 26 Z"/>
+    <path fill="#eef2ee" stroke="none" d="M16 15 C18.7 13.3 24.2 13 27.5 14.2 L27.5 25.6 C24.2 24.4 18.7 24.6 16 26 Z"/>
+    <path fill="none" stroke="#a9b4a9" stroke-width="0.9" d="M16 15 V26"/>
+    <path fill="none" stroke="#e7c46a" stroke-width="1.7" stroke-linecap="round" d="M12.5 11.5 A 4 4 0 0 0 19.5 11.5"/>
+    <path fill="none" stroke="#e7c46a" stroke-width="1.7" stroke-linecap="round" d="M9.5 8.5 A 7 7 0 0 0 22.5 8.5"/>
+    <path fill="none" stroke="#e7c46a" stroke-width="1.7" stroke-linecap="round" d="M6.5 5.5 A 10 10 0 0 0 25.5 5.5"/>
+  </g>
+  <!-- warm -->
+  <rect x="426" y="0" width="214" height="240" fill="#3a5a52"/>
+  <text x="442" y="28" font-size="12" fill="#e3efe0" font-weight="600">WARM (concept 10)</text>
+  <g transform="translate(498,70)">
+    <path fill="#ffffff" stroke="none" d="M16 15 C13.3 13.3 7.8 13 4.5 14.2 L4.5 25.6 C7.8 24.4 13.3 24.6 16 26 Z"/>
+    <path fill="#ffffff" stroke="none" d="M16 15 C18.7 13.3 24.2 13 27.5 14.2 L27.5 25.6 C24.2 24.4 18.7 24.6 16 26 Z"/>
+    <path fill="none" stroke="#dfe3e8" stroke-width="0.9" d="M16 15 V26"/>
+    <path fill="none" stroke="#e7c46a" stroke-width="1.8" stroke-linecap="round" d="M12.5 11.5 A 4 4 0 0 0 19.5 11.5"/>
+    <path fill="none" stroke="#e7c46a" stroke-width="1.8" stroke-linecap="round" d="M9.5 8.5 A 7 7 0 0 0 22.5 8.5"/>
+    <path fill="none" stroke="#e7c46a" stroke-width="1.8" stroke-linecap="round" d="M6.5 5.5 A 10 10 0 0 0 25.5 5.5" style="filter:drop-shadow(0 0 3px rgba(231,196,106,0.9))"/>
+  </g>
+</svg>
