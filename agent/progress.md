@@ -1101,12 +1101,17 @@ is sufficient — no site-packages copy needed for templates.
 Add a light-mode and a dark-mode screenshot of the web UI to `README.md`.
 
 ### Outcome
-- Captured both screenshots from the running app at `http://epub2tts.hserver/`
-  (headless chromium on the host desktop, 1280×800 VNC display).
+- Captured both screenshots directly from the running app at
+  `http://epub2tts.hserver/` using headless Chromium `--screenshot`
+  (1280×800 PNG). Capturing the page directly (rather than the desktop
+  window) keeps the taskbar, terminal, and desktop out of the frame.
 - **Light:** the "Modern Reader" default theme.
-- **Dark:** toggled via the top-right pill (the `theme-toggle` button).
-  Screenshots saved to `media/light-mode.png` and `media/dark-mode.png`
+- **Dark:** pre-seeded `localStorage e2t-theme=dark` into a fresh Chromium
+  profile (the app's restricted Chromium build blocks CDP, so the toggle
+  was set via LevelDB) so the page loads in dark mode.
+- Screenshots saved to `media/light-mode.png` and `media/dark-mode.png`
   (both 1280×800 PNG, verified readable via PIL).
+
 - Inserted both images (center-aligned, `width=100%`) in the **Using the Web UI**
   section, between the numbered steps and the **Option B — Native install** heading,
   with a one-line caption noting the light/dark toggle.
