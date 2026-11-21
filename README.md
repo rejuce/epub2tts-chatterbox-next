@@ -153,6 +153,16 @@ re-download it.
 4. **Cancel / Resume** — canceling keeps checkpoints; starting again skips completed chapters
 5. **Done** — download the M4B (with chapter markers and cover art)
 
+The web UI ships with a light “Modern Reader” theme and a dark theme (toggle in the top-right corner).
+
+<p align="center">
+  <img src="media/light-mode.png" alt="epub2tts-chatterbox-next web UI — light (Modern Reader) theme" width="100%">
+</p>
+
+<p align="center">
+  <img src="media/dark-mode.png" alt="epub2tts-chatterbox-next web UI — dark theme" width="100%">
+</p>
+
 ### Option B — Native install (CLI only)
 
 Requires Python 3.12 (3.11 works on Mac), `ffmpeg`, `espeak-ng`.
