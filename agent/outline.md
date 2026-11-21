@@ -405,8 +405,13 @@ AWAITING_REVIEW → TRANSCRIBING → DONE
     `/data/jobs/`), env vars (`EPUB2TTS_DATA`, `HF_HOME`, `NLTK_DATA`)
   - Bug reporting directed to **this** repo (upstream closed)
   - Web UI screenshots: `media/light-mode.png` + `media/dark-mode.png`
-    (1280×800, captured from the running app at `http://epub2tts.hserver/`)
-    inserted into the **Using the Web UI** section with a light/dark toggle caption.
+    (1280×800, captured 2026-11-21). First attempt captured the desktop window
+    (taskbar/terminal/desktop in frame) and was rejected. Re-captured via
+    headless Chromium CDP (page-target WebSocket) so the frame is page-only;
+    dark theme applied through `Runtime.evaluate` + reload, `--window-size`
+    flag for the 1280px viewport (`Page.setViewport` unavailable in this build),
+    padded to 800px. Verified 99% of pixels differ. Inserted into the
+    **Using the Web UI** section with a light/dark toggle caption.
 
 - **`docker-compose.yml`** (new, production): `epub2tts-chatterbox:local` image, nvidia GPU
   reservation (device_ids "all"), `NVIDIA_VISIBLE_DEVICES`/`NVIDIA_DRIVER_CAPABILITIES`/`HF_HOME`

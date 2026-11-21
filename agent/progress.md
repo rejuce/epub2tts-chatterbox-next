@@ -1123,3 +1123,39 @@ Add a light-mode and a dark-mode screenshot of the web UI to `README.md`.
 ### State
 - Local `dev` working tree: **not committed / not pushed.**
 - **Next:** commit + push to `origin/dev` (awaiting approval).
+
+## 2026-11-21 — Re-capture screenshots as clean page-only captures (via CDP) ✅
+
+### Why
+The first captures (commit `96a94fd`) were taken from the desktop window and
+included the taskbar, terminal, and desktop — rejected by the Lead Engineer.
+
+### Outcome
+- Re-captured both screenshots **directly through headless Chromium CDP**
+  (page-target WebSocket), so the frame is the page only — no taskbar,
+  terminal, or desktop.
+- **Dark theme:** applied via `Runtime.evaluate` `localStorage.setItem('e2t-theme','dark')`
+  + `Page.reload` (verified `body.dark=true`, bg `rgb(21,26,23)`).
+- **Viewport:** `Page.setViewport` is **not available** in this Chromium build
+  (`-32601 Page.setViewport wasn't found`), so used the
+  `--window-size=1280,800` flag to force a 1280px-wide viewport.
+- **Padding:** page content is ~657px tall; padded to 800px with the matching
+  theme background so both images are exactly 1280×800.
+- Verified: both 1280×800, MD5s differ, **99.0% of pixels differ**
+  (1,014,047 / 1,024,000). Light bg `rgb(250,250,247)`, dark bg `rgb(21,26,23)`.
+- Captured via full CDP (not `--screenshot`), which avoids the earlier
+  localStorage-seeding problem.
+
+- Replaced `media/light-mode.png` and `media/dark-mode.png`; README references
+  were already in place (from commit `96a94fd`).
+
+### Files changed
+- `media/light-mode.png`, `media/dark-mode.png` — clean page-only captures,
+  1280×800 (replacements)
+
+### State
+- Committed locally as `bafb88b` (2 files changed, 0 insertions, 0 deletions).
+- **Not pushed** — awaiting approval. Working tree clean.
+- Note: `display_file` did not render an image preview in this chat session
+  (returned `displayed:false` for every path); screenshots verified at the
+  pixel level instead.
