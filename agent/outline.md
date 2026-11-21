@@ -404,6 +404,10 @@ AWAITING_REVIEW → TRANSCRIBING → DONE
     usage with all flags, data-layout table (`/data/<folder>/*.epub`, `/data/speaker/`,
     `/data/jobs/`), env vars (`EPUB2TTS_DATA`, `HF_HOME`, `NLTK_DATA`)
   - Bug reporting directed to **this** repo (upstream closed)
+  - Web UI screenshots: `media/light-mode.png` + `media/dark-mode.png`
+    (1280×800, captured from the running app at `http://epub2tts.hserver/`)
+    inserted into the **Using the Web UI** section with a light/dark toggle caption.
+
 - **`docker-compose.yml`** (new, production): `epub2tts-chatterbox:local` image, nvidia GPU
   reservation (device_ids "all"), `NVIDIA_VISIBLE_DEVICES`/`NVIDIA_DRIVER_CAPABILITIES`/`HF_HOME`
   env, `8080:8080`, bind mounts `./data` → `/data` + `./models` → HF cache.

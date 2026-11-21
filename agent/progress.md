@@ -1094,3 +1094,27 @@ is sufficient — no site-packages copy needed for templates.
 - **Visual confirmation left to the user** — no headless browser/screenshot tool available
   to me; the inline HTML renderer returned `displayed:false` for the reused path.
 - **Next:** commit + push to `origin/dev` (awaiting approval).
+
+## 2026-11-21 — Add light + dark UI screenshots to README ✅
+
+### Task
+Add a light-mode and a dark-mode screenshot of the web UI to `README.md`.
+
+### Outcome
+- Captured both screenshots from the running app at `http://epub2tts.hserver/`
+  (headless chromium on the host desktop, 1280×800 VNC display).
+- **Light:** the "Modern Reader" default theme.
+- **Dark:** toggled via the top-right pill (the `theme-toggle` button).
+  Screenshots saved to `media/light-mode.png` and `media/dark-mode.png`
+  (both 1280×800 PNG, verified readable via PIL).
+- Inserted both images (center-aligned, `width=100%`) in the **Using the Web UI**
+  section, between the numbered steps and the **Option B — Native install** heading,
+  with a one-line caption noting the light/dark toggle.
+
+### Files changed
+- `README.md` — two new screenshots + caption in the Web UI section
+- `media/light-mode.png`, `media/dark-mode.png` — new assets
+
+### State
+- Local `dev` working tree: **not committed / not pushed.**
+- **Next:** commit + push to `origin/dev` (awaiting approval).
