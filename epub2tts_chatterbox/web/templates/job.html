@@ -22,7 +22,7 @@
   <pre class="hint" style="max-height:180px; overflow:auto">{{ job.progress.last_stdout }}</pre>
 {% endif %}
 </div>
-<button class="danger" hx-post="/api/jobs/{{ job.id }}/cancel" hx-confirm="Cancel this job? Checkpoints are kept (resumable).">
+<button class="danger" hx-post="/api/jobs/{{ job.id }}/cancel" hx-swap="none" hx-confirm="Cancel this job? Checkpoints are kept (resumable).">
   ⏹ Cancel</button>
 {% endif %}
 

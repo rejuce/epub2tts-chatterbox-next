@@ -1,5 +1,26 @@
 # Progress Log
 
+## 2026-11-23 — Fix: Cancel button shows raw JSON instead of label ✅
+
+### Task
+Cosmetic: the Cancel button on the job detail page rendered ugly `{"state":"cancelling"}`
+instead of just the button label. Fix so it shows plain text.
+
+### Fix
+- Root cause: the Cancel button in `epub2tts_chatterbox/web/templates/job.html`
+  was missing `hx-swap="none"`. The backend (`app.py` `api_cancel_job`) returns
+  a JSON body `{"state": "cancelling"}`, and HTMX's default swap (`innerHTML` on
+  the element) swapped that raw JSON into the button, replacing its text.
+- Change: added `hx-swap="none"` to the Cancel button (line 25), matching every
+  other button in the template (Start/Resume/Delete/Cancel).
+
+### Verification
+- Confirmed via grep that all other `hx-post/hx-delete/hx-patch` buttons in the
+  templates already set `hx-swap="none"` (only the Cancel button was missing it).
+- The `hx-get` on the live progress `<div>` intentionally keeps `hx-swap="innerHTML"`
+  (it swaps progress HTML), so no change there.
+- No test harness for the HTMX templates; verified by code inspection only.
+
 ## 2026-11-15 — Evaluation: Chatterbox Multilingual support (issue #8) ✅
 
 ### Task
